@@ -1,0 +1,7 @@
+<h2>Meetings</h2>
+<ul>
+	<li ng-repeat="meeting in mv.meetings"><p ng-click="mv.change(meeting.id)" ng-bind=meeting.title></p></li>
+</ul>
+<span ng-if="authorized=='admin'">
+		<button type="button" ng-click="mv.create()">Create</button>
+</span>

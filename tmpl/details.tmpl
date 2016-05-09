@@ -1,0 +1,60 @@
+<h2><span ng-bind=mv.meeting.title></span>
+<span class="small" ng-if="authorized == 'admin'">
+	( <a href="/#/edit/?id={{mv.meeting.id}}">Edit</a>
+	 | 
+	 <a href="/#/delete/?id={{mv.meeting.id}}&title={{mv.meeting.title}}">Delete</a> )
+</span></h2>
+<ul>
+	<li>Description: <span class="value" ng-bind=mv.meeting.desc></span></li>
+	<li>Author: <span class="value" ng-bind=mv.meeting.author></span></li>
+	<li>Duration: <span class="value" ng-bind=mv.meeting.duration></span></li>
+
+	<br>
+	<li>Is recorded: <span class="value" ng-bind="mv.meeting.isrec | yn"></span></li>
+	<li>Recording autostart: <span class="value" ng-bind="mv.meeting.autorec | yn"></span></li>
+	<li>User can start/stop recordings: <span class="value" ng-bind="mv.meeting.allowstartstoprec | yn"></span></li>
+	<section ng-if="authorized=='admin'">
+		<details>
+			<summary><hr>Attendees list (click to shrink/open)
+			</summary>
+			<ul class="value">
+				<li ng-repeat="attendee in mv.attendees">{{attendee.fullName}}</li>
+			</ul>
+		</details>
+		<details>
+			<summary><hr>Recordings list (click to shrink/open)
+			</summary>
+			<ul class="value">
+				<li ng-repeat="recording in mv.recordings"><a href={{recording.playback.format.url}} target="_blank">{{recording.name}}, duration: {{recording.playback.format.length}} mins</a></li>
+			</ul>
+		</details>
+	</section>
+	<hr>
+	<p>Started: <span class="value">{{mv.isrunning | yn}}</span></p>
+</ul>
+<br>
+
+<section ng-if="mv.link=='false'">
+	<section ng-if="authorized=='admin'">
+		<button ng-if="!mv.isrunning" ng-click="mv.createonserver(mv.meeting.id)">Start</button>
+		<button ng-if="mv.isrunning" ng-click="mv.createonserver(mv.meeting.id)">Join</button>
+		<button ng-if="mv.isrunning" ng-click="mv.endalert(mv.meeting.id)">End</button>
+	</section>
+	<form ng-if="authorized == 'user' && mv.isrunning">
+		Meeting password: <input ng-model="mv.meetingpwd" type="password">
+		<button ng-click="mv.join(mv.meeting.id, mv.meetingpwd)">Join</button>
+	</form>
+	<p ng-if="authorized == 'user' && !mv.isrunning">The meeting isn't started yet</button>
+	<p ng-if="authorized == 'guest'">Please, log in to join</p>
+</section>
+<a ng-if="mv.link != 'false' && authorized != 'guest'" target="_blank" ng-href={{mv.link}} ng-click='change(mv.meeting.id)'>Use this link to enter the meeting.</a>
+<div class='ng-modal' ng-show='mv.showyn'>
+	<div class='ng-yn-overlay' ng-click='mv.cancel()'></div>
+	<div class='ng-modal-dialog' ng-style='dialogStyle'>
+		<div class='ng-modal-dialog-content' ng-bind=mv.msgyn></div>
+		<div class="ng-modal-dialog-content">
+			<button type="button" ng-click="mv.end(mv.meeting.id)">Yes</button>
+			<button type="button" ng-click="mv.cancel()">No</button>
+		</div>
+	</div>
+</div>

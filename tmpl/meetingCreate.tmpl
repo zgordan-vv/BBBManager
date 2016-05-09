@@ -1,0 +1,29 @@
+<auth ng-if="authorized == 'false'"></auth>
+
+<warn-auth ng-if="authorized == 'user'"></warn-auth>
+
+<section id="meeting-create" ng-if="authorized == 'admin'" ng-controller='createValid as cv'>
+<h2>Fill in meeting data, please</h2>
+<form name="create" ng-submit="cv.submitcreate()" class="row">
+	<fieldset class="col-xs-12 col-sm-4">
+	<input type="hidden" name="tokensec" value={{cv.tokensec}}>
+	Title:<br><input name="title" ng-model="cv.title" ng-keyup="cv.updateCheckTitle()"><span class="error" ng-show="cv.titleValid != ''"> {{cv.titleValid}}</span><span class="error" ng-show="cv.titleUniq != ''" ng-bind="cv.titleUniq"> {{cv.titleUniq}}</span><br>
+	Description:<br><input name="desc" ng-model="cv.desc" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }" ng-keyup="cv.updateCheckDesc()"><span class="error" ng-show="cv.descValid != ''">{{cv.descValid}}</span><br>
+	Admin password (obligatory):<br><input type="password" name="admpwd" ng-model="cv.admpwd" ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }" ng-minlength="6"><span class="error" ng-show="create.admpwd.$error.minlength"><br>Password must contain 6 and more characters</span><br>
+	Admin password confirmation:<br><input type="password" name="admpwdconf" ng-model="cv.admpwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="cv.admpwd != cv.admpwdconf"> Passwords must match</span><br>
+	User password:<br><input name="pwd" type="password" ng-model="cv.pwd" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }" ng-minlength="6"><span class="error" ng-show="create.pwd.$error.minlength"><br>Password must contain 6 and more characters</span><br>
+	User password confirmation:<br><input name="pwdconf" type="password" ng-model="cv.pwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="cv.pwd != cv.pwdconf"> Passwords must match</span><br><br>
+	</fieldset>
+	<fieldset class="col-xs-12 col-sm-7">
+	Welcome message: <input ng-model="cv.welcome"><br>
+	Duration: <input type="number" min="0" step="1" ng-model="cv.duration"><br>
+	Is recorded: <input type="checkbox" ng-model="cv.isrec"><br>
+	Recording autostart: <input type="checkbox" ng-model="cv.autorec"><br>
+	Allow start and stop of recording: <input type="checkbox" ng-model="cv.allowstartstoprec"><br><br>
+<button type="submit">Create</button>
+	</fieldset>
+</form>
+<alert show='cv.show'>
+<p ng-bind=cv.msg></p>
+</alert>
+</section>

@@ -1,0 +1,17 @@
+<auth ng-if="authorized == 'guest'"></auth>
+
+<warn-auth ng-if="authorized == 'user'"></warn-auth>
+
+<section id="settings" ng-if="authorized == 'admin'" ng-controller="settingsCtrl as sc">
+<h2>Fill in server data, please</h2>
+<form name="settings" ng-submit="sc.submitsettings()">
+	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
+	External IP:<br><input name="ip" ng-model="sc.settings.ip" ng-keyup="sc.updateCheckIP()" ng-value=sc.settings.ip><span class="error" ng-show="sc.ipValid != ''"> {{sc.ipValid}}</span><br>
+	Secret:<br><input name="secret" ng-model="sc.settings.secret" ng-keyup="sc.updateCheckSecret()" ng-value=sc.settings.secret><span class="error" ng-show="sc.secretValid != ''"> {{sc.secretValid}}</span><br>
+	WebRTC is on: <input type="checkbox" ng-model="sc.settings.webrtc" ng-checked=sc.settings.webrtc><br>
+	<button type="submit">Save settings and restart server</button>
+</form>
+<alert show='sc.show'>
+<p ng-bind=sc.msg></p>
+</alert>
+</section>

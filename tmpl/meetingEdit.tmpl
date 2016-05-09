@@ -1,0 +1,29 @@
+<auth ng-if="authorized == 'false'"></auth>
+
+<warn-auth ng-if="authorized == 'user'"></warn-auth>
+
+<section id="meeting-edit" ng-if="authorized == 'admin'" ng-controller='editValid as ev'>
+<h2>Fill in meeting data, please</h2>
+<form name="create" ng-submit="ev.submitedit()">
+	<fieldset class="col-xs-12 col-sm-4">
+	<input type="hidden" name="tokensec" value={{ev.tokensec}}>
+	Title:<br><input name="title" ng-model="ev.meeting.title" ng-keyup="ev.updateCheckTitle()"><span class="error" ng-show="ev.titleValid != ''"> {{ev.titleValid}}</span><br>
+	Description:<br><input name="desc" ng-model="ev.meeting.desc" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }" ng-keyup="ev.updateCheckDesc()"><span class="error" ng-show="ev.descValid != ''">{{ev.descValid}}</span><br>
+	Admin password (obligatory):<br><input type="password" name="admpwd" value="" ng-model="ev.passwords.admpwd" ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }" ng-minlength="6"><span class="error" ng-show="create.admpwd.$error.minlength"> Password must contain 6 and more characters</span><br>
+	Admin password confirmation:<br><input type="password" name="admpwdconf" ng-model="ev.admpwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="ev.passwords.admpwd != ev.admpwdconf"> Passwords must match</span><br>
+	User password (obligatory):<br><input type="password" name="pwd" value="" ng-model="ev.passwords.pwd" ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }" ng-minlength="6"><span class="error" ng-show="create.pwd.$error.minlength"> Password must contain 6 and more characters</span><br>
+	User password confirmation:<br><input name="pwdconf" type="password" ng-model="ev.pwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="ev.passwords.pwd != ev.pwdconf"> Passwords must match</span><br><br>
+	</fieldset>
+	<fieldset class="col-xs-12 col-sm-7">
+	Welcome message: <input ng-model="ev.meeting.welcome"><br>
+	Duration: <input type="number" min="0" step="1" ng-model="ev.meeting.duration"><br>
+	Is recorded: <input type="checkbox" ng-model="ev.meeting.isrec"><br>
+	Recording autostart: <input type="checkbox" ng-model="ev.meeting.autorec"><br>
+	Allow start and stop of recording: <input type="checkbox" ng-model="ev.meeting.allowstartstoprec"><br><br>
+	<button type="submit">Save</button>
+	</fieldset>
+</form>
+<alert show='ev.show'>
+<p ng-bind=ev.msg></p>
+</alert>
+</section>

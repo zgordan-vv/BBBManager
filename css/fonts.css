@@ -1,0 +1,20 @@
+@font-face {
+    font-family: 'Bebas Neue';
+    src: local('Bebas Neue Bold'), local('BebasNeueBold'), url('bebasneuebold.woff2') format('woff2'), url('bebasneuebold.woff') format('woff'), url('bebasneuebold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Play';
+    src: local('Play Regular'), url('Play-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Play';
+    src: local('Play Bold'), url('Play-Bold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}

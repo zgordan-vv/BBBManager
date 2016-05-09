@@ -1,0 +1,9 @@
+<auth ng-if="authorized == 'false'"></auth>
+
+<warn-auth ng-if="authorized == 'user'"></warn-auth>
+
+<section id="meeting-delete" ng-if="authorized == 'admin'" ng-controller='deleteMeeting as dm'>
+<h2>Are you sure to delete meeting "<span ng-bind=dm.title></span>" ?</h2>
+<button type="button" ng-click="dm.yes()">Yes</button>
+<button type="button" ng-click="dm.no()">No</button>
+</section>

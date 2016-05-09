@@ -1,0 +1,18 @@
+<section id="install" ng-controller="installCtrl as ic">
+<h2>Fill in installation data, please</h2>
+<form name="install" ng-submit="ic.submitinstall()">
+	Login:<br><input name="name" ng-model="ic.name" ng-keyup="ic.updateCheckName()"><span class="error" ng-show="ic.nameValid != ''"> {{ic.nameValid}}</span><br>
+
+	Full Name:<br><input name="fullname" ng-model="ic.fullname" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }" ng-keyup="ic.updateCheckFName()"><span class="error" ng-show="ic.fNameValid != ''">{{ic.fNameValid}}</span><br>
+
+	Admin password (obligatory):<br><input type="password" name="pwd" ng-model="ic.pwd" ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }" ng-minlength="6"><span class="error" ng-show="install.pwd.$error.minlength"> Password must contain 6 and more characters.</span><br>
+
+	Admin password confirmation:<br><input type="password" name="pwdconf" ng-model="ic.pwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="ic.pwd != ic.pwdconf"> Passwords must match.</span><br>
+
+	Database prefix:<br><input name="dbprefix" ng-model="ic.dbprefix" ng-keyup="ic.updateCheckDBPrefix()"><span class="error" ng-show="ic.dbPrefixValid != ''"> {{ic.dbPrefixValid}}</span><br>
+
+	Domain name:<br><input name="dname" ng-model="ic.dname" ng-model-options="{ updateOn: 'default blur', debounce: { default: 0, blur: 0 } }" ng-keyup="ic.updateCheckDName()"><span class="error" ng-show="ic.dNameValid != ''">{{ic.dNameValid}}</span><br>
+<br>
+<button type="submit">Install</button>
+</form>
+</section>

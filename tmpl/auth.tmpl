@@ -1,0 +1,46 @@
+<section>
+<div class="tabs">
+	<ul class="nav nav-tabs">
+		<li data-toggle="tab" class="active"><a showtab="" href="#login">Login</a></li>
+		<li data-toggle="tab"><a showtab="" href="#register">Register</a></li>
+		<li></li>
+	</ul>
+	<div class="tab-content">
+		<div class="tab-pane active" id="login">
+			<section id="auth" ng-controller="authCtrl as ac">
+				<h2>Login, please</h2>
+					<form name="auth" ng-submit="ac.submitauth()">
+						<input type="hidden" name="sectoken" value="{{ac.sectoken}}">
+						Username:<br><input name="name" ng-model="ac.name"><br>
+						Password:<br><input type="password" name="pwd" ng-model="ac.pwd"
+						{{ac.feedback}}
+						<br>
+						<button type="submit">Log in</button>
+					</form>
+					<p ng-if="ac.warn">Wrong login or password</p>
+			</section>
+		</div>
+		<div class="tab-pane" id="register">
+			<section id="register" ng-controller="registerCtrl as rc">
+				<h2>Fill in new user data, please</h2>
+				<form name="register" ng-submit="rc.submitregister()">
+					<input type="hidden" name="sectoken" value="{{rc.sectoken}}">
+					Username:<br><input name="regname" ng-model="rc.regname" ng-keyup="rc.updateCheckName()"><span class="error" ng-show="rc.nameValid != ''"> {{rc.nameValid}}</span><span class="error" ng-show="rc.nameUniq != ''">{{rc.nameUniq}}</span><br>
+
+					Full Name:<br><input name="fullname" ng-model="rc.fullname" ng-model-options="{ updateOn: 'default blur', debounce: { default: 0, blur: 0 } }" ng-keyup="rc.updateCheckFName()"><span class="error" ng-show="rc.fNameValid != ''">{{rc.fNameValid}}</span><br>
+
+					Password (obligatory):<br><input type="password" name="regpwd" ng-model="rc.regpwd" ng-model-options="{ updateOn: 'default blur', debounce: { default: 500, blur: 0 } }" ng-minlength="6"><span class="error" ng-show="register.regpwd.$error.minlength"> Password must contain 6 and more characters.</span><br>
+
+					Password confirmation:<br><input type="password" name="pwdconf" ng-model="rc.pwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="rc.regpwd != rc.pwdconf"> Passwords must match.</span><br>
+
+					<br>
+					<button type="submit">Register</button>
+				</form>
+				<alert show='rc.show'>
+					<p ng-bing=rc.msg></p>
+				</alert>
+			</section>
+		</div>
+	</div>
+</div>
+</section>

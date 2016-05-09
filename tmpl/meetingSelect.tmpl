@@ -1,0 +1,12 @@
+<section ng-controller="MeetingsView as mv">
+	<section id="meetings-list" class="col-xs-12 col-md-4">
+		<meetings-list></meetings-list>
+	</section>
+	<section id="meeting-info" class="col-xs-12 col-md-7">
+		<welcome ng-if=!mv.showdetails></welcome>
+		<meeting-details ng-if=mv.showdetails></meeting-details>
+	</section>
+<alert show='mv.show'>
+<p ng-bind=mv.msg></p>
+</alert>
+</section>
