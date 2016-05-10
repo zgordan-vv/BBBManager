@@ -40,7 +40,6 @@ function settingsCtrl($http, REST){
 		var qstr = 'getMeetings';
 		REST.get('/api/getsecrsha?string='+qstr+'&secret='+sc.settings.secret).then(function(checksum){
 			qstr='http://'+sc.settings.ip+'/bigbluebutton/api/'+qstr+'?checksum='+checksum;
-			console.log(qstr);
 			REST.get(qstr).then(function(response){
 				var getMeetings = BBBglob.x2j(response);
 				if (getMeetings.returncode != "SUCCESS") {
