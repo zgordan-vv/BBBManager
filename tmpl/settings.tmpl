@@ -3,17 +3,28 @@
 <warn-auth ng-if="authorized == 'user'"></warn-auth>
 
 <section id="settings" ng-if="authorized == 'admin'" ng-controller="settingsCtrl as sc">
-<h2>Fill in server data, please</h2>
-<form name="settings" ng-submit="sc.submitsettings()">
-	<fieldset class="col-xs-3">
+<h2>Server settings</h2>
+<form name="settings" ng-submit="sc.submitsettings()" class="col-xs-3">
 	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
 	External IP:<br><input name="ip" ng-model="sc.settings.ip" ng-keyup="sc.updateCheckIP()" ng-value=sc.settings.ip><span class="error" ng-show="sc.ipValid != ''"> {{sc.ipValid}}</span><br>
 	Secret:<br><input name="secret" ng-model="sc.settings.secret" ng-keyup="sc.updateCheckSecret()" ng-value=sc.settings.secret><span class="error" ng-show="sc.secretValid != ''"> {{sc.secretValid}}</span><br>
 	WebRTC is on: <input type="checkbox" ng-model="sc.settings.webrtc" ng-checked=sc.settings.webrtc><br>
-	</fieldset>
-	<fieldset class="col-xs-6">
-	<button type="submit">Save settings and restart server</button>
-	</fieldset>
+	<button type="submit">Check</button>
+</form>
+<form name="tomcat" ng-submit="sc.submittomcat()" class="col-xs-5">
+	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
+	Disable recording by default: <input type="checkbox" name="disableRecordingDefault" ng-model="sc.tomcat.disableRecordingDefault" ng-value="sc.tomcat.disableRecordingDefault"><br>
+	Allow start/stop recording: <input type="checkbox" name="allowStartStopRecording" ng-model="sc.tomcat.allowStartStopRecording" ng-value="sc.tomcat.allowStartStopRecording"><br>
+	Maximum number of pages in presentation:<br><input type="number" min="0" step="1" name="maxNumPages" ng-model="sc.tomcat.maxNumPages" ng-value="sc.tomcat.maxNumPages"><br>
+	Default welcome message:<br><input name="defaultWelcomeMessage" ng-model="sc.tomcat.defaultWelcomeMessage" ng-value="sc.tomcat.defaultWelcomeMessage"><br>
+	Default welcome message footer:<br><input name="defaultWelcomeMessageFooter" ng-model="sc.tomcat.defaultWelcomeMessageFooter" ng-value="sc.tomcat.defaultWelcomeMessageFooter"><br>
+	Default maximum of users per conference:<br><input type="number" min="0" step="1" name="defaultMaxUsers" ng-model="sc.tomcat.defaultMaxUsers" ng-value="sc.tomcat.defaultMaxUsers"><br>
+	Default meeting duration:<br><input type="number" min="0" step="1" name="defaultMeetingDuration" ng-model="sc.tomcat.defaultMeetingDuration" ng-value="sc.tomcat.defaultMeetingDuration"><br>
+	Default meeting expire duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if there are no users logged in)</span><br><input type="number" min="0" step="1" name="defaultMeetingExpireDuration" ng-model="sc.tomcat.defaultMeetingExpireDuration" ng-value="sc.tomcat.defaultMeetingExpireDuration"><br>
+	Default meeting create/join duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if nobody is logging in after creation of the meeting)</span><br><input type="number" min="0" step="1" name="defaultMeetingCreateJoinDuration" ng-model="sc.tomcat.defaultMeetingCreateJoinDuration" ng-value="sc.tomcat.defaultMeetingCreateJoinDuration"><br>
+	The URL where the user will be redirected after logging out of the meeting:<br><input name="bbbWebLogoutURL" ng-model="sc.tomcat.bbbWebLogoutURL" ng-value="sc.tomcat.bbbWebLogoutURL"><br>
+	The URL of the default avatar picture:<br><input name="defaultAvatarURL" ng-model="sc.tomcat.defaultAvatarURL" ng-value="sc.tomcat.defaultAvatarURL"><br>
+	<button type="submit">Set</button>
 </form>
 <alert show='sc.show'>
 <p ng-bind=sc.msg></p>

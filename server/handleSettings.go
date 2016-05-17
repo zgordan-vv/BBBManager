@@ -6,23 +6,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-var settings = struct{
+type Settings struct {
 	ID string	`json:"id"`
 	IP string	`json:"ip"`
 	Secret string	`json:"secret"`
 	Webrtc bool	`json:"webrtc"`
-}{ID:"settings"}
+}
+
+var settings = Settings{ID:"settings"}
 
 func initSettings() {
 	s, db := initMongo()
 	defer s.Close()
 
-	settings0 := struct{
-		ID string	`json:"id"`
-		IP string	`json:"ip"`
-		Secret string	`json:"secret"`
-		Webrtc bool	`json:"webrtc"`
-	}{}
+	settings0 := Settings{}
 
 	settingsC := db.C("settings")
 	err := settingsC.Find(bson.M{"id":"settings"}).One(&settings0)

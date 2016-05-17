@@ -7,6 +7,21 @@ function settingsCtrl($http, REST){
 
 	sc.show = false;
 
+	function saved(){
+		sc.msg = "New settings are saved";
+		sc.show = true;
+	}
+
+	function notSaved(){
+		sc.msg = "Server error, please try later";
+		sc.show = true;
+	}
+
+	function notAuth(){
+		sc.msg = "Server error, please try later";
+		sc.show = true;
+	}
+
 	$http.get('/api/getSecToken').then(function(response){
 		sc.tokensec = response.data;
 	}, function(){ sc.tokensec = ""; });
@@ -48,17 +63,8 @@ function settingsCtrl($http, REST){
 					return;
 				} else {
 					REST.post("/api/setSettings", post).then(function(response){
-						if (response == "403") {
-							sc.msg = "You are not authorized to change settings";
-							sc.show = true;
-						} else {
-							sc.msg = "New settings are saved!"
-							sc.show = true;
-						}
-					}, function(response){
-						sc.msg = "Server error. Please, try later.";
-						sc.show = true;
-					});
+						if (response == "403") {notAuth()} else {saved()}
+					}, notSaved());
 				}
 			}, function(){
 				sc.msg = "No response from server";
@@ -66,6 +72,30 @@ function settingsCtrl($http, REST){
 				return;
 			});
 		});
+	};
+
+	sc.submittomcat = function() {
+		var post = $.param({
+			tokensec: sc.tokensec,
+			settings: JSON.stringify({
+				params: [
+					["maxNumPages", sc.tomcat.maxNumPages.toString()],
+					["defaultWelcomeMessage", sc.tomcat.defaultWelcomeMessage],
+					["defaultWelcomeMessageFooter", sc.tomcat.defaultWelcomeMessageFooter],
+					["defaultMaxUsers", sc.tomcat.defaultMaxUsers.toString()],
+					["defaultMeetingDuration", sc.tomcat.defaultMeetingDuration.toString()],
+					["defaultMeetingExpireDuration", sc.tomcat.defaultMeetingExpireDuration.toString()],
+					["defaultMeetingCreateJoinDuration", sc.tomcat.defaultMeetingCreateJoinDuration.toString()],
+					["disableRecordingDefault", sc.tomcat.disableRecordingDefault.toString()],
+					["allowStartStopRecording", sc.tomcat.allowStartStopRecording.toString()],
+					["bbb.web.logoutURL", sc.tomcat.bbbWebLogoutURL],
+					["defaultAvatarURL", sc.tomcat.defaultAvatarURL],
+				],
+			})
+		});
+		REST.post("/api/setTomcat", post).then(function(response){
+			if (response == "403") {notAuth()} else {saved()}
+		}, notSaved());
 	};
 };
 

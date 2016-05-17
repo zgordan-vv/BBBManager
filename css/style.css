@@ -45,7 +45,7 @@ summary::-webkit-details-marker {
 	font-size: .8em;
 }
 
-.error {
+.error, .hint {
 	font-style: italic;
 	font-size: .9em;
 	color: #444;

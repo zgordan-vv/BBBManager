@@ -31,7 +31,7 @@ body {
 	padding-right: 40px;
 }
 
-#main {
+.main {
 	background-color: #fff;
 	border-radius: 2px;
 	font-family: 'Play';

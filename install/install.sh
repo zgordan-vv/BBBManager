@@ -13,4 +13,3 @@ export GOPATH=/srv/4BBB/server
 cd ../server
 go get
 go build
-./server

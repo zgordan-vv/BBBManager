@@ -37,6 +37,8 @@ func initHandlers() {
 	http.HandleFunc("/api/regexp", mwInstall(regexpHandler))
 	http.HandleFunc("/api/getSettings", mw(getSettingsHandler))
 	http.HandleFunc("/api/setSettings", mw(setSettingsHandler))
+//	http.HandleFunc("/api/getTomcat", mw(getTomcatHandler))
+	http.HandleFunc("/api/setTomcat", mw(setTomcatHandler))
 
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../"))))
 	http.ListenAndServe(":"+PORT, nil)
