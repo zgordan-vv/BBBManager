@@ -3,6 +3,7 @@ package main
 const (
 	SPECFILE string ="-_,.@#$%^!*()+="
 	OP string = string('"')
+	AP string = "'"
 	CHAR string = "A-Za-zа-яА-ЯёЁ"
 	NUM string = "0-9"
 	SPECIAL string = " -=.!@#$%*()_+|':;,?`~"
