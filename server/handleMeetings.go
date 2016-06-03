@@ -3,9 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2"
+	"strings"
 )
 
 type Meeting struct{
@@ -278,4 +280,18 @@ func toggleRunningHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("Error is ")
 	fmt.Println(err)
 	outnil(w)
+}
+
+func isRunningHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("meetingID")
+	str := "isMeetingRunningmeetingID="+id
+	shaword := sha(str + settings.Secret)
+	full := "http://"+settings.IP+"/bigbluebutton/api/isMeetingRunning?meetingID="+id+"&checksum="+string(shaword)
+	resp, _ := http.Get(full)
+	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+	result := string(body)
+	if strings.Contains(result, "SUCCESS") {
+		w.Write(output[result == "<response><returncode>SUCCESS</returncode><running>true</running></response>"])
+	} else {out(w, "false")}
 }

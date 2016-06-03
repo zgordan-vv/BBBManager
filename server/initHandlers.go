@@ -28,6 +28,7 @@ func initHandlers() {
 	http.HandleFunc("/api/toggleRunning", mw(toggleRunningHandler))
 	http.HandleFunc("/api/passwords", mw(passwordsHandler))
 	http.HandleFunc("/api/meetingUniq", mw(meetingUniqHandler))
+	http.HandleFunc("/api/isRunning", mwGuestOk(isRunningHandler))
 	http.HandleFunc("/api/create", mw(createMeetingHandler))
 	http.HandleFunc("/api/edit", mw(editMeetingHandler))
 	http.HandleFunc("/api/delete", mw(deleteMeetingHandler))
@@ -39,6 +40,8 @@ func initHandlers() {
 	http.HandleFunc("/api/setSettings", mw(setSettingsHandler))
 	http.HandleFunc("/api/getTomcat", mw(getTomcatHandler))
 	http.HandleFunc("/api/setTomcat", mw(setTomcatHandler))
+	http.HandleFunc("/api/getFreeswitch", mw(getFreeswitchHandler))
+	http.HandleFunc("/api/setFreeswitch", mw(setFreeswitchHandler))
 
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("../"))))
 	http.ListenAndServe(":"+PORT, nil)

@@ -6,10 +6,11 @@ import (
 	"os/exec"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type jsonArray struct {
-	Params [][]string `json: "params"`
+	Params map[string]string `json: "params"`
 }
 
 type Param struct {
@@ -19,50 +20,64 @@ type Param struct {
 }
 
 const tomcatCfgFile string = "/var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties"
-const sedstr string = AP+"s/^.*=\\(.*\\)$/\\1/"+AP
+const sedstr string = AP+"s/^.[^=]*=\\(.*\\)$/\\1/"+AP
+const url_prefix = "${bigbluebutton.web.serverURL}/"
 
 var tomcatTmpl = map[string]Param{
 	"maxNumPages": Param{"int", 0, 0},
-	"defaultWelcomeMessage": Param{"string", 0, 0},
-	"defaultWelcomeMessageFooter": Param{"string", 0, 0},
+//	"defaultWelcomeMessage": Param{"string", 0, 0},
+//	"defaultWelcomeMessageFooter": Param{"string", 0, 0},
 	"defaultMaxUsers": Param{"int", 0, 0},
 	"defaultMeetingDuration": Param{"int", 0, 0},
 	"defaultMeetingExpireDuration": Param{"int", 0, 0},
 	"defaultMeetingCreateJoinDuration": Param{"int", 0, 0},
 	"disableRecordingDefault": Param{"bool", 0, 0},
 	"allowStartStopRecording": Param{"bool", 0, 0},
-	"bbb.web.logoutURL": Param{"url", 0, 0},
-	"defaultAvatarURL": Param{"url", 0, 0},
+//	"bbb.web.logoutURL": Param{"url", 0, 0},
+//	"defaultAvatarURL": Param{"url", 0, 0},
 }
 
 func getTomcatHandler(w http.ResponseWriter, r *http.Request) {
+	username := getUserName(r)
+	user, ok := getUser(username)
+
+	if (!ok) || (!user.IsAdmin) {out403(w); return}
+
 	result := jsonArray{}
-	params := [][]string{}
+	params := map[string]string{}
 	for key := range(tomcatTmpl) {
-		params = append(params, []string{key, getTomcatParam(key)})
+		params[key] = getTomcatParam(key)
 	}
-	fmt.Println(params)
+
 	result.Params = params
-	fmt.Println(result)
+	json.NewEncoder(w).Encode(result)
 }
 
 func getTomcatParam(param string) string {
 	getTomcat := exec.Command("bash", "-c", "cat "+tomcatCfgFile+" | grep "+param+" | sed "+sedstr)
 	getTomcatOutput, err := getTomcat.CombinedOutput()
-	if err != nil {return ""} else {return string(getTomcatOutput)}
+	if err != nil {return ""} else {
+		var str string
+		if len(getTomcatOutput) > 0 {
+			str = string(getTomcatOutput[0:len(getTomcatOutput)-1])
+		} else {
+			str = string(getTomcatOutput[0:len(getTomcatOutput)])
+		}
+		return str[0:len(str)]
+	}
 }
 
-func execPlain (params [][]string, file string) ([]byte, error) {
+func execPlain (params map[string]string, file string) ([]byte, error) {
 	fmt.Println(params)
-	for _, param := range(params) {
-		name := param[0]
-		value := param[1]
+	for name, value := range(params) {
 		str := "s/^"+name+".*/"+name+"="+value+"/"
 		command := exec.Command("sed", "-i", str, file)
 		output, err := command.CombinedOutput()
+			fmt.Println("str is "+str)
 			fmt.Print("output: "); fmt.Println(string(output))
 			fmt.Print("error: "); fmt.Println(err)
-		if (output != nil) || (err != nil) {
+		if (len(output) >0 ) || (err != nil) {
+			fmt.Println("execPlain error")
 			return output, err
 		}
 	}
@@ -73,24 +88,27 @@ func execPlain (params [][]string, file string) ([]byte, error) {
 	return restartOutput, err
 }
 
-func evaluateParams(params [][]string, tmpl map[string]Param) bool {
+func evaluateParams(params map[string]string, tmpl map[string]Param) bool {
 
-	for _, param := range(params) {
-		key := param[0]
+	for key, value := range(params) {
 		must, ok := tmpl[key]
-		if !ok {return false}
-		value:= param[1]
+		if !ok {fmt.Println("can't get type in a map"); return false}
 		switch must.tip {
 			case "int": {
 				value2int, err := strconv.Atoi(value)
-				if (err != nil) || (value2int < must.min) || ((must.max != 0) && (value2int > must.max)) {return false}
+				if (err != nil) || (value2int < must.min) || ((must.max != 0) && (value2int > must.max)) {fmt.Println("int"); return false}
 			}
 			case "bool": {
 				_, err := strconv.ParseBool(value)
-				if err != nil {return false}
+				if err != nil {fmt.Println("bool case"); return false}
 			}
 			case "url": {
-				if !checkDomainName(value) {return false}
+				if !checkDomainName(value) {
+					if strings.HasPrefix(value, url_prefix) {
+						valueWOPrefix := strings.TrimPrefix(value, url_prefix)
+						if !checkDomainName(valueWOPrefix) {return false}
+					} else if value != "" {fmt.Printf("url case %s\n", value); return false}
+				}
 			}
 		}
 	}
@@ -103,35 +121,25 @@ func setTomcatHandler(w http.ResponseWriter, r *http.Request) {
 	user, ok := getUser(username)
 
 	secToken := r.FormValue("tokensec")
-	fmt.Println("stage 1, tokensec is "+secToken); fmt.Println(user.IsAdmin)
 	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {out403(w); return}
-	fmt.Println("stage 2")
 
 	jsonObj := r.FormValue("settings")
-	fmt.Println(jsonObj)
 	tomcatSettings := jsonArray{}
-	if json.Unmarshal([]byte(jsonObj), &tomcatSettings) != nil {out500(w); return}
-	fmt.Println(tomcatSettings)
+	if err := json.Unmarshal([]byte(jsonObj), &tomcatSettings); err != nil {fmt.Println(err); out500(w); return}
 
-	fmt.Println("stage 3")
 	params := tomcatSettings.Params;
-	fmt.Println(tomcatSettings.Params)
 	if !evaluateParams(params, tomcatTmpl) {out500(w); return}
 
-	fmt.Println("stage 4")
-	
 	output, err := execPlain(params, tomcatCfgFile)
-	fmt.Println("stage 5")
-	if err != nil || output != nil {out500(w)} else {outnil(w)}
+	fmt.Println("output "+string(output))
+	if err != nil {
+		fmt.Print("Error is ")
+		fmt.Println(err)
+		out500(w)
+	} else {outnil(w)}
 }
 
-/*func setFreeswitchSettings() {
-	path := "/opt/freeswitch/conf/autoload_configs"
-	file := "conference.conf.xml"
-	energyLevelPath := "/configuration/profiles/profile/param[@name='energy-level']/@value"
-}
-
-func setClientSettings() {
+/*func setClientSettings() {
 	path := "/var/www/bigbluebutton/client/conf"
 	file := "config.xml"
 	muteOnStart := "/config/modules/meeting/"
