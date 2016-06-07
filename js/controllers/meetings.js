@@ -17,31 +17,41 @@ function MeetingsView($rootScope, $http, $location, REST, Meeting, Passwords, Us
 		mv.link = "false";
 		Meeting.get({meetingID: meetingID}, function(meeting){}).$promise.then(function(result){
 			mv.meeting = result;
-			mv.isrunning = mv.meeting.isrunning;
 			Passwords.get({meetingID: meetingID}, function(){}).$promise.then(function(result){
 				mv.passwords = result;
-				if ($rootScope.authorized == 'admin') {
-					REST.apiCall("getMeetingInfo", {meetingID: meetingID, password: mv.passwords.admpwd}, function(response){
-						var meetingJson = BBBglob.x2j(response);
-						var attObj = meetingJson.attendees;
-						if (!attObj || !attObj.attendee) {mv.attendees = [];} else if (attObj.attendee.constructor !== Array) {mv.attendees=new Array(attObj.attendee);} else {mv.attendees = attObj.attendee;};
-					}, function(error){
+
+				$http.get("api/isRunning?meetingID="+meetingID).then(function(response){
+
+					mv.isrunning = response.data == "true";
+
+					if ($rootScope.authorized == 'admin') {
+
+						REST.apiCall("getMeetingInfo", {meetingID: meetingID, password: mv.passwords.admpwd}, function(response){
+							var meetingJson = BBBglob.x2j(response);
+							var attObj = meetingJson.attendees;
+							if (!attObj || !attObj.attendee) {mv.attendees = [];} else if (attObj.attendee.constructor !== Array) {mv.attendees=new Array(attObj.attendee);} else {mv.attendees = attObj.attendee;};
+						}, function(error){
+							mv.attendees=[];
+						});
+
+						REST.apiCall("getRecordings", {meetingID: meetingID}, function(response){
+							var recordingsJson = BBBglob.x2j(response);
+							var recordObj = recordingsJson.recordings;
+							if (!recordObj || !recordObj.recording) {mv.recordings = [];} else if (recordObj.recording.constructor !== Array) {mv.recordings=new Array(recordObj.recording);} else {mv.recordings = recordObj.recording;};
+						}, function(error){
+							mv.recordings=[];
+						});
+
+					} else {
 						mv.attendees=[];
-					});
-					REST.apiCall("getRecordings", {meetingID: meetingID}, function(response){
-						var recordingsJson = BBBglob.x2j(response);
-						var recordObj = recordingsJson.recordings;
-						if (!recordObj || !recordObj.recording) {mv.recordings = [];} else if (recordObj.recording.constructor !== Array) {mv.recordings=new Array(recordObj.recording);} else {mv.recordings = recordObj.recording;};
-					}, function(error){
-						mv.recordings=[];
-					});
-				} else {
-					mv.attendees=[];
-					mv.recordings = [];
-				}
+						mv.recordings = [];
+					}
+
+					mv.showdetails = true;
+
+				}, function(error){mv.showdetails = false; mv.msg="Server is not ready"; mv.show=true});
 			});
 		});
-		mv.showdetails = true;
 	};
 
 	mv.create = function(){
@@ -63,7 +73,6 @@ function MeetingsView($rootScope, $http, $location, REST, Meeting, Passwords, Us
 			logoutURL: 'http://slava.zgordan.ru',
 		}, function(response){
 			mv.join(meetingID, mv.passwords.admpwd);
-			REST.toggleRunning(meetingID, true);
 		}, function(error){
 			mv.msg = "The meeting is not created.\nServer response: "+error;
 			mv.show=true;
@@ -109,7 +118,6 @@ function MeetingsView($rootScope, $http, $location, REST, Meeting, Passwords, Us
 
 	mv.end = function(meetingID){
 
-		REST.toggleRunning(meetingID, false);
 		REST.apiCall("end", {
 			meetingID: meetingID,
 			password: mv.passwords.admpwd,

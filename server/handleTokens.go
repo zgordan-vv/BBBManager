@@ -1,26 +1,26 @@
 package main
 
 import (
-	"net/http"
+	"github.com/valyala/fasthttp"
 )
 
-var secTokens map[string][]string = make(map[string][]string)
-var dupTokens map[string]string = make(map[string]string)
-var dupUsedTokens map[string]string = make(map[string]string)
+var secTokens map[string][][]byte = make(map[string][][]byte)
+var dupTokens map[string][]byte = make(map[string][]byte)
+var dupUsedTokens map[string][]byte = make(map[string][]byte)
 
-func secTokenHandler(w http.ResponseWriter, r *http.Request) {
+func secTokenHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	secToken := CW(32)
 	secTokens[username] = append(secTokens[username],secToken)
-	out(w, secToken)
+	r.Write(secToken)
 }
 
-func checkSec(sectoken string, username string) bool {
+func checkSec(sectoken []byte, username string) bool {
 	tokens, ok := secTokens[username]
 	if !ok {return false} else {
 		return true
 		for i, token := range(tokens) {
-			if token == sectoken {
+			if string(token) == string(sectoken) {
 				tokens = append(tokens[:i], tokens[i+1:]...)
 				secTokens[username] = tokens
 				return true
@@ -30,13 +30,13 @@ func checkSec(sectoken string, username string) bool {
 	}
 }
 
-func dupTokenHandler(w http.ResponseWriter, r *http.Request) {
+func dupTokenHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	if username != "" {dupTokens[username] = CW(8)}
 }
 
 func dupControl(username string) bool {
-	if dupTokens[username] == dupUsedTokens[username] {return false} else {
+	if string(dupTokens[username]) == string(dupUsedTokens[username]) {return false} else {
 		dupUsedTokens[username] = dupTokens[username]
 		return true
 	}

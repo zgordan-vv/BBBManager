@@ -1,19 +1,19 @@
 package main
 
 import (
-	"net/http"
+	"github.com/valyala/fasthttp"
 	"encoding/json"
 	"gopkg.in/mgo.v2/bson"
 	"github.com/garyburd/redigo/redis"
 )
 
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+func loginHandler(r *fasthttp.RequestCtx) {
 	jsonObj := r.FormValue("login")
 	logindata := struct{
 		Login string	`json:"login"`
 		Password string	`json:"password"`
 	}{}
-	if json.Unmarshal([]byte(jsonObj), &logindata) != nil {return}
+	if json.Unmarshal(jsonObj, &logindata) != nil {return}
 	login := logindata.Login
 	password := logindata.Password
 
@@ -23,7 +23,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		userExists,err := client.Do("SISMEMBER", DBPREFIX+"users", login)
 		if err == nil {
 			if userExists.(int64) == 0 {
-				out403(w)
+				out403(r)
 				return
 			}
 		}
@@ -35,11 +35,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 	usersC := db.C("userDetails")
 	user := User{}
 	usersC.Find(bson.M{"name":login}).One(&user)
-	if (user == User{}) || (passEncrypt(password) != user.Keyword) {out403(w); return} else {
-		newSessionValid(w, r, login)
+	if (user == User{}) || (passEncrypt(password) != user.Keyword) {out403(r); return} else {
+		newSessionValid(r, login)
 	}
 }
 
-func quitHandler(w http.ResponseWriter, r *http.Request) {
-	deleteUserSession(w, r)
+func quitHandler(r *fasthttp.RequestCtx) {
+	deleteUserSession(r)
 }

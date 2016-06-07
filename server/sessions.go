@@ -3,8 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
-	"github.com/gorilla/context"
-	"net/http"
+	"github.com/valyala/fasthttp"
 	"strconv"
 	"time"
 )
@@ -19,21 +18,24 @@ type UserSession struct {
 	Expires	int64
 }
 
-func newSessionValid(w http.ResponseWriter, r *http.Request, user string) {
+func newSessionValid(r *fasthttp.RequestCtx, user string) {
 	sessionID := CW(32)
-	c1 := http.Cookie{Name: VALIDCOOKIE, Value: sessionID, Path: "/", MaxAge: 36000000, HttpOnly: true}
-	http.SetCookie(w, &c1)
-	saveUserSession(sessionID, user)
+	c1 := fasthttp.Cookie{}
+	c1.SetKey(VALIDCOOKIE)
+	c1.SetValueBytes(sessionID)
+	c1.SetPath("/")
+	c1.SetExpire(time.Now().Add(time.Second*36000000))
+	c1.SetHTTPOnly(true)
+	r.Response.Header.SetCookie(&c1)
+	saveUserSession(string(sessionID), user)
 }
 
-func deleteUserSession(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie(VALIDCOOKIE)
-	if err != nil {	return } else {
-		if sessionID := cookie.Value; sessionID == "" { return } else {
-			client, err := redis.Dial("tcp", ":6379")
-			if err == nil {client.Do("DEL", DBPREFIX+"usersession:"+sessionID)}
-			context.Delete(r, "username")
-		}
+func deleteUserSession(r *fasthttp.RequestCtx) {
+	cookie := r.Request.Header.Cookie(VALIDCOOKIE)
+	if cookie == nil { return } else {
+		client, err := redis.Dial("tcp", ":6379")
+		if err == nil {client.Do("DEL", DBPREFIX+"usersession:"+string(cookie))}
+		r.SetUserValue("username", "")
 	}
 }
 

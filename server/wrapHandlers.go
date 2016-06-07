@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/context"
-	"net/http"
+	"github.com/valyala/fasthttp"
 	"time"
 	"strings"
 )
@@ -12,116 +11,108 @@ const STATCOOKIE="4BBBStats"
 
 var bm, cr float32
 
-func mw(fn http.HandlerFunc) http.HandlerFunc {
+func mw(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return generalWrapper(checkHandler(fn))
 }
 
-func mwGuestOk(fn http.HandlerFunc) http.HandlerFunc {
+func mwGuestOk(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return generalWrapper(guestOkHandler(fn))
 }
 
-func mwInstall(fn http.HandlerFunc) http.HandlerFunc {
+func mwInstall(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return timeMeasure(recoverHandler(fn))
 }
 
-func generalWrapper(fn http.HandlerFunc) http.HandlerFunc {
+func generalWrapper(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return timeMeasure(installCheck(recoverHandler(referrerHandler(fn))))
 }
 
-func timeMeasure(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func timeMeasure(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(r *fasthttp.RequestCtx) {
 		t1 := time.Now()
-		fn(w, r)
+		fn(r)
 		t2 := time.Now()
 		bm += float32(t2.Sub(t1))
 		cr++
-		//fmt.Println(bm / cr)
+//		fmt.Println(bm / cr)
 	}
 }
 
-func installCheck(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if installed {fn(w,r)} else {out(w,"notInstalled")}
+func installCheck(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(r *fasthttp.RequestCtx) {
+		if installed {fn(r)} else {out(r,"notInstalled")}
 	}
 }
 
-func recoverHandler(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func recoverHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(r *fasthttp.RequestCtx) {
 		defer func() {
 			if err := recover(); err != nil {
 				fmt.Println(err)
-				out(w, "recovered")
+				out(r, "recovered")
 			}
 		}()
-		fn(w, r)
+		fn(r)
 	}
 }
 
-func referrerHandler(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func referrerHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(r *fasthttp.RequestCtx) {
 		host := ""
-		hostslice := strings.Split(r.Referer(),"/")
+		hostslice := strings.Split(string(r.Referer()),"/")
 		if len(hostslice) >= 3 {host = hostslice[2]}
-		ip := r.Header.Get("X-Real-Ip")
+		ip := r.Request.Header.Peek("X-Real-Ip")
 		clientID := ""
-		if c, err := r.Cookie(STATCOOKIE); (err != nil) || (c.Value == "") {
-			clientID = CW(8)
-			c := http.Cookie{Name: STATCOOKIE, Value: clientID, Path: "/", MaxAge: 31104000, HttpOnly: true}
-			http.SetCookie(w, &c)
+		if statCookie := r.Request.Header.Cookie(STATCOOKIE); statCookie == nil {
+			clientID = string(CW(8))
+			c := fasthttp.Cookie{}
+			c.SetKey(STATCOOKIE)
+			c.SetValue(clientID)
+			c.SetPath("/")
+			c.SetExpire(time.Now().Add(time.Second*31104000))
+			c.SetHTTPOnly(true)
+			r.Response.Header.SetCookie(&c)
 		} else {
-			clientID = c.Value
+			clientID = string(statCookie)
 		}
-		addStats(host,ip,clientID)
-		fn(w,r)
+		addStats(host,string(ip),clientID)
+		fn(r)
 	}
 }
 
-func checkHandler(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie(VALIDCOOKIE)
-		if err != nil {
-			out403(w)
+func checkHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(r *fasthttp.RequestCtx) {
+		sessionID := r.Request.Header.Cookie(VALIDCOOKIE)
+		if sessionID == nil {
+			out403(r)
 		} else {
-			sessionID := c.Value
-			if sessionID == "" {
-				out403(w)
+			session := loadUserSession(string(sessionID))
+			username := session.Username
+			if (username == "") || (time.Now().Unix()>=session.Expires) {
+				out403(r)
 			} else {
-				defer context.Clear(r)
-				session := loadUserSession(sessionID)
-				username := session.Username
-				if (username == "") || (time.Now().Unix()>=session.Expires) {
-					out403(w)
-				} else {
-					context.Set(r, "username", username)
-					fn(w, r)
-				}
+				r.SetUserValue("username", username)
+				fn(r)
 			}
 		}
 	}
 }
 
-func guestOkHandler(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie(VALIDCOOKIE)
-		if err != nil {
-			context.Set(r, "username", "")
-			fn(w, r)
+func guestOkHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
+	return func(r *fasthttp.RequestCtx) {
+		sessionID := r.Request.Header.Cookie(VALIDCOOKIE)
+		if sessionID == nil {
+			r.SetUserValue("username", "")
+			fn(r)
 		} else {
-			sessionID := c.Value
-			if sessionID == "" {
-				context.Set(r, "username", "")
-				fn(w, r)
+			session := loadUserSession(string(sessionID))
+			username := session.Username
+			if (username == "") || (time.Now().Unix()>=session.Expires) {
+				r.SetUserValue("username", "")
+				fn(r)
 			} else {
-				defer context.Clear(r)
-				session := loadUserSession(sessionID)
-				username := session.Username
-				if (username == "") || (time.Now().Unix()>=session.Expires) {
-					context.Set(r, "username", "")
-					fn(w, r)
-				} else {
-					context.Set(r, "username", username)
-					fn(w, r)
-				}
+				r.SetUserValue("username", username)
+				fn(r)
 			}
 		}
 	}

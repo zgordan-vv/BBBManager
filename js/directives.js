@@ -57,6 +57,27 @@ function welcome(){
 	};
 };
 
+function connSettingsForm(){
+	return {
+		restrict: 'E',
+		templateUrl: 'tmpl/settings/connSettingsForm.tmpl',
+	};
+};
+
+function tomcatSettingsForm(){
+	return {
+	restrict: 'E',
+	templateUrl: 'tmpl/settings/tomcatSettingsForm.tmpl'
+	};
+};
+
+function fsSettingsForm(){
+	return {
+	restrict: 'E',
+	templateUrl: 'tmpl/settings/fsSettingsForm.tmpl'
+	};
+};
+
 function showtab() {
 	return {
 		link: function (scope, element, attrs) {
@@ -81,6 +102,13 @@ function alert() {
 	};
 };
 
+function waiting() {
+	return {
+		restrict: 'E',
+		templateUrl: 'tmpl/waiting.tmpl' // See below
+	};
+};
+
 angular.module('dir', [])
 .directive('auth', auth)
 .directive('authpage', authpage)
@@ -89,7 +117,11 @@ angular.module('dir', [])
 .directive('mainNav', mainNav)
 .directive('meetingsList', meetingsList)
 .directive('meetingDetails', meetingDetails)
+.directive('connSettingsForm', connSettingsForm)
+.directive('tomcatSettingsForm', tomcatSettingsForm)
+.directive('fsSettingsForm', fsSettingsForm)
 .directive('showtab', showtab)
 .directive('welcome', welcome)
 .directive('alert', alert)
+.directive('waiting', waiting)
 })();

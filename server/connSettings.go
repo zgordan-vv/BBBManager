@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"net/http"
+	"github.com/valyala/fasthttp"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -26,17 +26,17 @@ func initSettings() {
 	if err == nil {settings = settings0}
 }
 
-func getSettingsHandler(w http.ResponseWriter, r *http.Request) {
+func getSettingsHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	user, ok := getUser(username)
 
-	if (!ok) || (!user.IsAdmin) {out403(w); return}
+	if (!ok) || (!user.IsAdmin) {out403(r); return}
 
 	out, err := json.Marshal(settings)
-	if err == nil {w.Write(out)}
+	if err == nil {r.Write(out)}
 }
 
-func setSettingsHandler(w http.ResponseWriter, r *http.Request) {
+func setSettingsHandler(r *fasthttp.RequestCtx) {
 
 	username := getUserName(r)
 	user, ok := getUser(username)
@@ -56,12 +56,12 @@ func setSettingsHandler(w http.ResponseWriter, r *http.Request) {
 		Webrtc bool	`json:"webrtc"`
 	}{ID:"settings"}
 
-	if json.Unmarshal([]byte(jsonObj), &newSettings) != nil {return}
+	if json.Unmarshal(jsonObj, &newSettings) != nil {return}
 
-	if !validate(IP, newSettings.IP) || !validate(DIGITS, newSettings.Secret) {out(w, "Not validated"+newSettings.IP+" "+newSettings.Secret+" ..."); return}
+	if !validate(IP, newSettings.IP) || !validate(DIGITS, newSettings.Secret) {out(r, "Not validated"+newSettings.IP+" "+newSettings.Secret+" ..."); return}
 
 	_, err := settingsC.Upsert(bson.M{"id":"settings"}, newSettings)
-	if err != nil {out500(w);  return}
+	if err != nil {out500(r);  return}
 	settings = newSettings
-	outnil(w)
+	outnil(r)
 }

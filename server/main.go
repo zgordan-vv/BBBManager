@@ -5,5 +5,5 @@ func main() {
 	initGlobs()
 	initKeys()
 	initSettings()
-	initHandlers()
+	serveHTTP()
 }

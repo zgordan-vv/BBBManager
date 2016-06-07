@@ -1,8 +1,7 @@
 package main
 
 import (
-	"github.com/gorilla/context"
-	"net/http"
+	"github.com/valyala/fasthttp"
 	"gopkg.in/mgo.v2/bson"
 	"github.com/garyburd/redigo/redis"
 	"encoding/json"
@@ -15,31 +14,31 @@ type User struct {
 	Keyword string
 }
 
-func getUserName(r *http.Request) string {
-	username, ok := context.GetOk(r,"username")
-	if ok { return username.(string) } else { return ""}
+func getUserName(r *fasthttp.RequestCtx) string {
+	username := r.UserValue("username")
+	if username != nil {return username.(string)} else {return ""}
 }
 
-func restGetUserName(w http.ResponseWriter, r *http.Request) {
-	out(w, getUserName(r))
+func restGetUserName(r *fasthttp.RequestCtx) {
+	out(r, getUserName(r))
 }
 
-func restGetUserFullName(w http.ResponseWriter, r *http.Request) {
+func restGetUserFullName(r *fasthttp.RequestCtx) {
 	fullName := ""
 	username := getUserName(r)
 	user, ok := getUser(username)
 	if ok {fullName = user.FullName}
-	out(w, fullName)
+	out(r, fullName)
 }
 
-func restGetUser(w http.ResponseWriter, r *http.Request) {
+func restGetUser(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	user, _ := getUser(username)
 	out, err := json.Marshal(user)
-	if err == nil {w.Write(out)}
+	if err == nil {r.Write(out)}
 }
 
-func checkAuthHandler(w http.ResponseWriter, r *http.Request) {
+func checkAuthHandler(r *fasthttp.RequestCtx) {
 	output := "guest"
 	username := getUserName(r)
 	user, ok := getUser(username)
@@ -48,23 +47,23 @@ func checkAuthHandler(w http.ResponseWriter, r *http.Request) {
 			if user.IsAdmin {output = "admin"} else {output = "user"}
 		}
 	}	
-	out(w, output)
+	out(r, output)
 }
 
-func profileSaveHandler(w http.ResponseWriter, r *http.Request) {
+func profileSaveHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
-	if username == "" { out(w, "NotSaved"); return }
+	if username == "" { out(r, "NotSaved"); return }
 	user, ok := getUser(username)
-	if !ok { out(w, "NotSaved"); return }
-	fullname := r.FormValue("fullname")
-	if !checkLogin(fullname) { out(w, "WrongFullName") } else {
-		oldpwd := r.FormValue("oldpwd")
-		pwd := r.FormValue("pwd")
-		if changed, correct := checkPwdChange(username, oldpwd, pwd); !correct {out403(w)} else {
+	if !ok { out(r, "NotSaved"); return }
+	fullname := string(r.FormValue("fullname"))
+	if !checkLogin(fullname) { out(r, "WrongFullName") } else {
+		oldpwd := string(r.FormValue("oldpwd"))
+		pwd := string(r.FormValue("pwd"))
+		if changed, correct := checkPwdChange(username, oldpwd, pwd); !correct {out403(r)} else {
 			user.FullName = fullname
 			if changed {user.Keyword = passEncrypt(pwd)}
-			if err := saveUser(user); err != nil {out(w, "DontSave")}
-			out(w, "ok")
+			if err := saveUser(user); err != nil {out(r, "DontSave")}
+			out(r, "ok")
 		}
 	}
 }

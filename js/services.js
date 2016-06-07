@@ -44,15 +44,10 @@ function REST($http, $q) {
 			string: command+qstr,
 		});
 		instance.post('/api/getsha', obj).then(function(checksum){
-			console.log(BBBglob.BBBURL+command+'?'+qstr+'&checksum='+checksum);
 			instance.get(BBBglob.BBBURL+command+'?'+qstr+'&checksum='+checksum).then(
 				respFunc, errFunc
 			);
 		});
-	}
-
-	instance.toggleRunning = function(meetingID, on) {
-		$http.get("/api/toggleRunning?meetingID="+meetingID+"&on="+on);
 	}
 
 	return instance;

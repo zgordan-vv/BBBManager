@@ -1,13 +1,13 @@
 package main
 
 import (
-	"net/http"
+	"github.com/valyala/fasthttp"
 )
 
-func regexpHandler(w http.ResponseWriter, r *http.Request) {
+func regexpHandler(r *fasthttp.RequestCtx) {
 
-	word := r.FormValue("word")
-	typ := r.FormValue("type")
+	word := string(r.FormValue("word"))
+	typ := string(r.FormValue("type"))
 	exp := ""
 	errors := map[string]string{}
 	errors["name"] = "Name letter error"
@@ -34,5 +34,5 @@ func regexpHandler(w http.ResponseWriter, r *http.Request) {
 		case "domain":
 			exp = DOMAIN
 	}
-	if validate(exp, word) {outnil(w)} else {out(w, errors[typ])}
+	if validate(exp, word) {outnil(r)} else {out(r, errors[typ])}
 }

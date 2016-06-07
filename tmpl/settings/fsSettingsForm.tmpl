@@ -1,0 +1,8 @@
+<!--                           Microphone settings                    -->
+
+<form name="freeswitch" ng-submit="sc.submitfs()">
+	<h3>Audio settings</h3>
+Microphone sensitivity: <input type="range" min="0" max="999" name="energy-level" ng-value="sc.freeswitch.energyLevel" ng-model="sc.freeswitch.energyLevel">
+{{sc.freeswitch.energyLevel}}<br>
+	<button type="submit">Set</button>
+</form>

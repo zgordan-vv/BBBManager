@@ -3,36 +3,36 @@ package main
 import (
 	"crypto/sha1"
 	"encoding/hex"
-	"net/http"
+	"github.com/valyala/fasthttp"
 )
 
-func shaHandler(w http.ResponseWriter, r *http.Request) {
+func shaHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	user, ok := getUser(username)
 	if !ok || !user.IsAdmin {return}
 	str := r.FormValue("string")
-	w.Write(sha(str + settings.Secret))
+	r.Write(sha(append(str, []byte(settings.Secret)...)))
 }
 
-func shaSecHandler(w http.ResponseWriter, r *http.Request) {
+func shaSecHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	user, ok := getUser(username)
 	if !ok || !user.IsAdmin {return}
 	str := r.FormValue("string")
 	secret := r.FormValue("secret")
-	w.Write(sha(str + secret))
+	r.Write(sha(append(str, secret...)))
 }
 
-func sha(str string) []byte {
-	x := sha1.Sum([]byte(str))
+func sha(str []byte) []byte {
+	x := sha1.Sum(str)
 	return []byte(hex.EncodeToString(x[0:20]))
 }
 
-func joinHandler(w http.ResponseWriter, r *http.Request) {
+func joinHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	_, ok := getUser(username)
 	if !ok {return}
 	qstr := r.FormValue("string")
-	checksum := sha("join"+qstr + settings.Secret)
-	w.Write(append([]byte( "join"+"?"+qstr+"&checksum="),checksum...))
+	checksum := sha(appendAll([][]byte{[]byte("join"),qstr,[]byte(settings.Secret)}))
+	r.Write(appendAll([][]byte{[]byte("join?"),qstr,[]byte("&checksum="),checksum}))
 }

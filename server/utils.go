@@ -7,12 +7,13 @@ import (
 	"io"
 )
 
-func CW(n int) string {
+func CW(n int) []byte {
 	b := make([]byte, n)
 	if _, err := io.ReadFull(rand.Reader, b); err != nil {
-		return ""
+		return nil
 	}
-	return base64.URLEncoding.EncodeToString(b)
+	result := []byte(base64.URLEncoding.EncodeToString(b))
+	return result
 }
 
 func xmlstarlet(path, file, param, value string) string {
@@ -23,4 +24,12 @@ func xmlstarlet(path, file, param, value string) string {
 	err = command.Wait()
 	if err != nil {return "500"}
 	return ""
+}
+
+func appendAll(slices [][]byte) []byte {
+	result := []byte{}
+	for _, slice := range(slices) {
+		result = append(result, slice...)
+	}
+	return result
 }

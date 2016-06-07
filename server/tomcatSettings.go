@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"encoding/json"
 	"os/exec"
-	"net/http"
+	"github.com/valyala/fasthttp"
 	"strconv"
 	"strings"
 )
@@ -37,11 +37,11 @@ var tomcatTmpl = map[string]Param{
 //	"defaultAvatarURL": Param{"url", 0, 0},
 }
 
-func getTomcatHandler(w http.ResponseWriter, r *http.Request) {
+func getTomcatHandler(r *fasthttp.RequestCtx) {
 	username := getUserName(r)
 	user, ok := getUser(username)
 
-	if (!ok) || (!user.IsAdmin) {out403(w); return}
+	if (!ok) || (!user.IsAdmin) {out403(r); return}
 
 	result := jsonArray{}
 	params := map[string]string{}
@@ -50,7 +50,8 @@ func getTomcatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	result.Params = params
-	json.NewEncoder(w).Encode(result)
+	output, _ := json.Marshal(result)
+	r.Write(output)
 }
 
 func getTomcatParam(param string) string {
@@ -115,28 +116,28 @@ func evaluateParams(params map[string]string, tmpl map[string]Param) bool {
 	return true
 }
 
-func setTomcatHandler(w http.ResponseWriter, r *http.Request) {
+func setTomcatHandler(r *fasthttp.RequestCtx) {
 	
 	username := getUserName(r)
 	user, ok := getUser(username)
 
 	secToken := r.FormValue("tokensec")
-	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {out403(w); return}
+	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {out403(r); return}
 
 	jsonObj := r.FormValue("settings")
 	tomcatSettings := jsonArray{}
-	if err := json.Unmarshal([]byte(jsonObj), &tomcatSettings); err != nil {fmt.Println(err); out500(w); return}
+	if err := json.Unmarshal(jsonObj, &tomcatSettings); err != nil {fmt.Println(err); out500(r); return}
 
 	params := tomcatSettings.Params;
-	if !evaluateParams(params, tomcatTmpl) {out500(w); return}
+	if !evaluateParams(params, tomcatTmpl) {out500(r); return}
 
 	output, err := execPlain(params, tomcatCfgFile)
 	fmt.Println("output "+string(output))
 	if err != nil {
 		fmt.Print("Error is ")
 		fmt.Println(err)
-		out500(w)
-	} else {outnil(w)}
+		out500(r)
+	} else {outnil(r)}
 }
 
 /*func setClientSettings() {
