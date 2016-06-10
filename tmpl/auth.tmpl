@@ -9,6 +9,11 @@
 		<div class="tab-pane active" id="login">
 			<section id="auth" ng-controller="authCtrl as ac">
 				<h2>Login, please</h2>
+					<div class="oauth">
+						<button type="button" ng-click="ac.oauthLogin('GitHub')">Login with GitHub</a>
+						<button type="button" ng-click="ac.oauthLogin('FB')">Login with Facebook</a>
+						<button type="button" ng-click="ac.oauthLogin('Google')">Login with Google</a>
+					</div>
 					<form name="auth" ng-submit="ac.submitauth()">
 						<input type="hidden" name="sectoken" value="{{ac.sectoken}}">
 						Username:<br><input name="name" ng-model="ac.name"><br>

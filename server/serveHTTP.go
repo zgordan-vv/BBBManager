@@ -20,6 +20,12 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		case "/api/quit": mwGuestOk(quitHandler)(ctx)
 		case "/api/checkAuth": mwGuestOk(checkAuthHandler)(ctx)
 
+		case "/api/getGitHubLoginURL": mwGuestOk(getGitHubLoginURLHandler)(ctx)
+		case "/api/getFBLoginURL": mwGuestOk(getFBLoginURLHandler)(ctx)
+
+		case "/api/GHCB": mwGuestOk(githubCallback)(ctx)
+		case "/api/FBCB": mwGuestOk(fbCallback)(ctx)
+
 		case "/api/getName": mw(restGetUserName)(ctx)
 		case "/api/getFullName": mw(restGetUserFullName)(ctx)
 		case "/api/getUser": mw(restGetUser)(ctx)

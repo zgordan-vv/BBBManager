@@ -23,6 +23,12 @@ angular.module('BBBapp', ['ngRoute', 'AuthCs', 'SettingsCs', 'InstallCs', 'Meeti
 		 when('/settings', {
 			templateUrl: 'tmpl/settings.tmpl'
 		 }).
+		 when('/GHCB', {
+			templateUrl: 'tmpl/ghcb.tmpl'
+		 }).
+		 when('/FBCB', {
+			templateUrl: 'tmpl/fbcb.tmpl'
+		 }).
 		 when('/', {
 			templateUrl: 'tmpl/meetingSelect.tmpl'
 		 }).

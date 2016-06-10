@@ -60,7 +60,7 @@ function registerCtrl($rootScope, $http, $location, REST) {
 	};
 }
 
-function authCtrl($http, $location, $rootScope, REST) {
+function authCtrl($http, $window, $location, $rootScope, REST) {
 
 	var ac = this;
 
@@ -88,6 +88,15 @@ function authCtrl($http, $location, $rootScope, REST) {
 			$location.url("/");
 		});
 	};
+
+	ac.oauthLogin = function(provider) {
+		REST.get("/api/get"+provider+"LoginURL").then(function(response){
+			console.log(response);
+//			$window.location = response;
+		},function(error){
+			alert(error);
+		});
+	};
 }
 
 function quitCtrl($http, $rootScope) {
@@ -97,6 +106,6 @@ function quitCtrl($http, $rootScope) {
 
 angular.module("AuthCs", [])
 .controller('registerCtrl', ['$rootScope', '$http', '$location', 'REST', registerCtrl])
-.controller('authCtrl', ['$http', '$location', '$rootScope', 'REST', authCtrl])
+.controller('authCtrl', ['$http', '$window', '$location', '$rootScope', 'REST', authCtrl])
 .controller('quitCtrl', ['$http', '$rootScope', quitCtrl])
 })();
