@@ -12,19 +12,21 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		case "/api/install": mwInstall(installHandler)(ctx)
 		case "/api/checkInstall": mwInstall(restInstalled)(ctx)
 
-		case "/api/register": mwGuestOk(registerHandler)(ctx)
+		case "/api/register": mwGuestOk(browserRegisterHandler)(ctx)
 		case "/api/nameUniq": mwGuestOk(nameUniqHandler)(ctx)
 		case "/api/profilesave": mw(profileSaveHandler)(ctx)
 
-		case "/api/login": mwGuestOk(loginHandler)(ctx)
+		case "/api/login": mwGuestOk(browserLoginHandler)(ctx)
 		case "/api/quit": mwGuestOk(quitHandler)(ctx)
 		case "/api/checkAuth": mwGuestOk(checkAuthHandler)(ctx)
 
 		case "/api/getGitHubLoginURL": mwGuestOk(getGitHubLoginURLHandler)(ctx)
 		case "/api/getFBLoginURL": mwGuestOk(getFBLoginURLHandler)(ctx)
+		case "/api/getLinkedInLoginURL": mwGuestOk(getLinkedInLoginURLHandler)(ctx)
 
 		case "/api/GHCB": mwGuestOk(githubCallback)(ctx)
 		case "/api/FBCB": mwGuestOk(fbCallback)(ctx)
+		case "/api/INCB": mwGuestOk(linkedinCallback)(ctx)
 
 		case "/api/getName": mw(restGetUserName)(ctx)
 		case "/api/getFullName": mw(restGetUserFullName)(ctx)

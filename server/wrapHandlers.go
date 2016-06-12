@@ -91,11 +91,17 @@ func checkHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 			if (username == "") || (time.Now().Unix()>=session.Expires) {
 				out403(r)
 			} else {
+				checkIfLogged(r, username)
 				r.SetUserValue("username", username)
 				fn(r)
 			}
 		}
 	}
+}
+
+func checkIfLogged(r *fasthttp.RequestCtx, username string) {
+	if strings.HasPrefix(username, "FB_") {fmt.Println("Facebook guy!")}
+	if strings.HasPrefix(username, "GH_") {fmt.Println("GitHub guy!")}
 }
 
 func guestOkHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {

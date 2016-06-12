@@ -5,45 +5,21 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"encoding/json"
 	"os"
 )
 
-type SafetyState struct {
-	SALT0 string
-	SALT1 string
-	SITEKEY string
-	SECRETKEY string
-	GITHUB_CLIENT_ID string
-	GITHUB_CLIENT_SECRET string
-	FB_CLIENT_ID string
-	FB_CLIENT_SECRET string
-}
-
 var (
-	SALT0, SALT1, SITEKEY, SECRETKEY, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, FB_CLIENT_ID, FB_CLIENT_SECRET string
+	SALT0, SALT1, SITEKEY, SECRETKEY string
 	controlToken map[string]string = make(map[string]string)
 	submitToken map[string]string = make(map[string]string)
 	secToken map[string]string = make(map[string]string)
 )
 
 func initKeys() {
-	var loadstate SafetyState
-	file, err := os.Open("KEYS")
-	defer file.Close()
-	if err != nil {
-		return
-	}
-	decoder := json.NewDecoder(file)
-	check(decoder.Decode(&loadstate))
-	SALT0 = loadstate.SALT0
-	SALT1 = loadstate.SALT1
-	SITEKEY = loadstate.SITEKEY
-	SECRETKEY = loadstate.SECRETKEY
-	GITHUB_CLIENT_ID = loadstate.GITHUB_CLIENT_ID
-	GITHUB_CLIENT_SECRET = loadstate.GITHUB_CLIENT_SECRET
-	FB_CLIENT_ID = loadstate.FB_CLIENT_ID
-	FB_CLIENT_SECRET = loadstate.FB_CLIENT_SECRET
+	SALT0 = os.Getenv("BBB_SALT0")
+	SALT1 = os.Getenv("BBB_SALT1")
+	SITEKEY = os.Getenv("BBB_SITEKEY")
+	SECRETKEY = os.Getenv("BBB_SECRETKEY")
 }
 
 func validate(exp, input string) bool {

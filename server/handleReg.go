@@ -9,7 +9,7 @@ import (
 
 //var recap recaptcha.R = recaptcha.R{Secret: SECRETKEY}
 
-func registerHandler(r *fasthttp.RequestCtx) {
+func browserRegisterHandler(r *fasthttp.RequestCtx) {
 	jsonObj := r.FormValue("registerdata")
 	data := struct{
 		Name string	`json:"name"`
@@ -28,4 +28,9 @@ func registerHandler(r *fasthttp.RequestCtx) {
 	if err := saveUser(*user); err != nil {fmt.Println("Users have not been saved", err); out(r, "DontSaved"); return}
 	out200(r)
 	newSessionValid(r,login)
+}
+
+func oauthRegister(r *fasthttp.RequestCtx, user *OauthUser) {
+	oauthUser := User{user.Login, user.FullName, false, ""}
+	if err := saveUser(oauthUser); err != nil {fmt.Println("Users have not been saved", err); out(r, "DontSaved"); return}
 }
