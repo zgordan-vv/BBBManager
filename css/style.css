@@ -108,3 +108,20 @@ details ul {
 	padding: 30px 40px;
 	text-align: center;
 }
+
+.fs-settings {
+	margin-top: 30px;
+}
+
+.fs-settings td {
+	padding-right: 20px;
+}
+
+.fs-settings thead td {
+	padding-bottom: 12px;
+	font-weight: 600;
+}
+
+.freeswitch button {
+	margin-top: 24px;
+}

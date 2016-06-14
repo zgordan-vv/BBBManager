@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/garyburd/redigo/redis"
 	"github.com/valyala/fasthttp"
+	"strings"
 	"strconv"
 	"time"
 )
@@ -40,10 +41,12 @@ func deleteUserSession(r *fasthttp.RequestCtx) {
 }
 
 func saveUserSession(sessionID, username string) {
+	var duration time.Duration
 	client, err := redis.Dial("tcp", ":6379")
 	if err == nil {
 		defer client.Close()
-		_, err = client.Do("HMSET", DBPREFIX+"usersession:"+sessionID,"Username",username,"Expires",time.Now().Add(time.Hour*2400).Unix())
+		if strings.HasPrefix(username, "<OAUTH>") {duration = time.Hour*24} else {duration = time.Hour*2400}
+		_, err = client.Do("HMSET", DBPREFIX+"usersession:"+sessionID,"Username",username,"Expires",time.Now().Add(duration).Unix())
 	}
 	if err != nil {
 		fmt.Println("Session save has failed: ", err)

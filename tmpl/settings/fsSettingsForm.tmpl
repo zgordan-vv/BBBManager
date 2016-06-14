@@ -1,8 +1,18 @@
 <!--                           Microphone settings                    -->
 
-<form name="freeswitch" ng-submit="sc.submitfs()">
-	<h3>Audio settings</h3>
-Microphone sensitivity: <input type="range" min="0" max="999" name="energy-level" ng-value="sc.freeswitch.energyLevel" ng-model="sc.freeswitch.energyLevel">
-{{sc.freeswitch.energyLevel}}<br>
+<form name="freeswitch" class="freeswitch" ng-submit="sc.submitfs()">
+	<h3>Microphone sensivity</h3>
+	<table class="fs-settings">
+	<thead>
+		<td>Profile</td>
+		<td>Select</td>
+		<td>Value</td>
+	</thead>
+	<tr ng-repeat="profile in sc.audioprofiles">
+		<td ng-bind=sc.profilename[profile]></td>
+		<td><input type="range" min="0" max="999" name=profile ng-value="sc.freeswitch[profile]" ng-model="sc.freeswitch[profile]"></td>
+		<td>{{sc.freeswitch[profile]}}</td>
+	</tr>
+	</table>
 	<button type="submit">Set</button>
 </form>

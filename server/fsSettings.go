@@ -8,11 +8,17 @@ import (
 )
 
 const fsCfgFile string = "/opt/freeswitch/conf/autoload_configs/conference.conf.xml"
-const xmlParam = "configuration/profiles/profile[@name='default']/param[@name='energy-level']/@value"
+//const xmlParam = "configuration/profiles/profile[@name='default']/param[@name='energy-level']/@value"
+
+//var 
 
 
 var fsTmpl = map[string]Param{
-	"energyLevel": Param{"int", 0, 999},
+	"default": Param{"int", 0, 999},
+	"wideband": Param{"int", 0, 999},
+	"ultrawideband": Param{"int", 0, 999},
+	"cdquality": Param{"int", 0, 999},
+	"sla": Param{"int", 0, 999},
 }
 
 func getFreeswitchHandler(r *fasthttp.RequestCtx) {
@@ -23,14 +29,16 @@ func getFreeswitchHandler(r *fasthttp.RequestCtx) {
 
 	result := jsonArray{}
 	params := map[string]string{}
-	params["energyLevel"] = getFSParam()
+	for profile := range(fsTmpl) {
+		params[profile] = getFSParam("configuration/profiles/profile[@name='"+profile+"']/param[@name='energy-level']/@value")
+	}
 	result.Params = params
 	output, _ := json.Marshal(result)
 	r.Write(output)
 }
 
-func getFSParam() string {
-	xmlQuery := exec.Command("bash", "-c", "xmlstarlet sel -t -v \""+xmlParam+"\" "+fsCfgFile)
+func getFSParam(queryString string) string {
+	xmlQuery := exec.Command("bash", "-c", "xmlstarlet sel -t -v \""+queryString+"\" "+fsCfgFile)
 	getFSOutput, err := xmlQuery.CombinedOutput()
 	if err != nil {return ""} else {
 		return string(getFSOutput)
@@ -50,15 +58,18 @@ func setFreeswitchHandler(r *fasthttp.RequestCtx) {
 	if err := json.Unmarshal([]byte(jsonObj), &fsSettings); err != nil {fmt.Println(err); out500(r); return}
 
 	params := fsSettings.Params;
-	if !evaluateParams(params, fsTmpl) {out500(r); return}
 
 	path := "/opt/freeswitch/conf/autoload_configs/"
 	file := "conference.conf.xml"
-	energyLevelPath := "/configuration/profiles/profile/param[@name='energy-level']/@value"
 
-	output, err := updateXMLParam(path+file, energyLevelPath, params["energyLevel"])
-	fmt.Println("output "+string(output))
-	if err != nil {out500(r); return}
+	for profile := range(fsTmpl) {
+		param := params[profile]
+		if !evaluateParam(profile, param, fsTmpl) {return}
+		energyLevelPath := "/configuration/profiles/profile[@name='"+profile+"']/param[@name='energy-level']/@value"
+		output, err := updateXMLParam(path+file, energyLevelPath, param)
+		fmt.Println("output "+string(output))
+		if err != nil {out500(r); return}
+	}
 
 	restart := exec.Command("service", "bbb-freeswitch", "restart")
 	restartOutput, err := restart.CombinedOutput()

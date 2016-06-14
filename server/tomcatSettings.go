@@ -89,27 +89,25 @@ func execPlain (params map[string]string, file string) ([]byte, error) {
 	return restartOutput, err
 }
 
-func evaluateParams(params map[string]string, tmpl map[string]Param) bool {
+func evaluateParam(key string, value string, tmpl map[string]Param) bool {
 
-	for key, value := range(params) {
-		must, ok := tmpl[key]
-		if !ok {fmt.Println("can't get type in a map"); return false}
-		switch must.tip {
-			case "int": {
-				value2int, err := strconv.Atoi(value)
-				if (err != nil) || (value2int < must.min) || ((must.max != 0) && (value2int > must.max)) {fmt.Println("int"); return false}
-			}
-			case "bool": {
-				_, err := strconv.ParseBool(value)
-				if err != nil {fmt.Println("bool case"); return false}
-			}
-			case "url": {
-				if !checkDomainName(value) {
-					if strings.HasPrefix(value, url_prefix) {
-						valueWOPrefix := strings.TrimPrefix(value, url_prefix)
-						if !checkDomainName(valueWOPrefix) {return false}
-					} else if value != "" {fmt.Printf("url case %s\n", value); return false}
-				}
+	must, ok := tmpl[key]
+	if !ok {fmt.Println("can't get type in a map"); return false}
+	switch must.tip {
+		case "int": {
+			value2int, err := strconv.Atoi(value)
+			if (err != nil) || (value2int < must.min) || ((must.max != 0) && (value2int > must.max)) {fmt.Println("int"); return false}
+		}
+		case "bool": {
+			_, err := strconv.ParseBool(value)
+			if err != nil {fmt.Println("bool case"); return false}
+		}
+		case "url": {
+			if !checkDomainName(value) {
+				if strings.HasPrefix(value, url_prefix) {
+					valueWOPrefix := strings.TrimPrefix(value, url_prefix)
+					if !checkDomainName(valueWOPrefix) {return false}
+				} else if value != "" {fmt.Printf("url case %s\n", value); return false}
 			}
 		}
 	}
@@ -129,7 +127,9 @@ func setTomcatHandler(r *fasthttp.RequestCtx) {
 	if err := json.Unmarshal(jsonObj, &tomcatSettings); err != nil {fmt.Println(err); out500(r); return}
 
 	params := tomcatSettings.Params;
-	if !evaluateParams(params, tomcatTmpl) {out500(r); return}
+	for key, value := range(params) {
+		if !evaluateParam(key, value, tomcatTmpl) {out500(r); return}
+	}
 
 	output, err := execPlain(params, tomcatCfgFile)
 	fmt.Println("output "+string(output))

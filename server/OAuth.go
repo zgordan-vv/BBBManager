@@ -28,6 +28,7 @@ type LinkedInUser struct {
 type OauthUser struct {
 	Login string
 	FullName string
+	LastToken oauth2.Token
 }
 
 var (
@@ -52,6 +53,8 @@ var (
 		Endpoint: linkedin.Endpoint,
 		RedirectURL: os.Getenv("BBB_IN_REDIRECT_URL"),
 	}
+	EMPTY_TOKEN = oauth2.Token{}
+	oauthURLs map[string]string = map[string]string{"FB":"https://graph.facebook.com/me?access_token=","IN":"https://api.linkedin.com/v1/people/~?format=json&oauth2_access_token="}
 )
 
 func getGitHubLoginURLHandler(r *fasthttp.RequestCtx) {
@@ -78,9 +81,7 @@ func githubCallback(r *fasthttp.RequestCtx) {
 		fmt.Println(err)
 		r.Redirect("/",302)
 	}
-	oauthClient := githubOauthConf.Client(oauth2.NoContext, token)
-	client := github.NewClient(oauthClient)
-	user, _, err := client.Users.Get("")
+	user,err := getGitHubUser(token)
 	if err != nil {
 		fmt.Println("Getting user error")
 		r.Redirect("/",302)
@@ -89,9 +90,17 @@ func githubCallback(r *fasthttp.RequestCtx) {
 	oauthUser := OauthUser{
 		Login: "<OAUTH>_GH_"+strconv.Itoa(*user.ID),
 		FullName: *user.Name,
+		LastToken: *token,
 	}
 
 	oauthLogin(r, &oauthUser)
+}
+
+func getGitHubUser(token *oauth2.Token) (*github.User, error) {
+	oauthClient := githubOauthConf.Client(oauth2.NoContext, token)
+	client := github.NewClient(oauthClient)
+	user, _, err := client.Users.Get("")
+	return user, err
 }
 
 func fbCallback(r *fasthttp.RequestCtx) {
@@ -116,6 +125,7 @@ func fbCallback(r *fasthttp.RequestCtx) {
 	oauthUser := OauthUser{
 		Login: "<OAUTH>_FB_"+userData.Id,
 		FullName: userData.Username,
+		LastToken: *token,
 	}
 
 	oauthLogin(r, &oauthUser)
@@ -145,6 +155,7 @@ func linkedinCallback(r *fasthttp.RequestCtx) {
 	oauthUser := OauthUser{
 		Login: "<OAUTH>_IN_"+userData.Id,
 		FullName: fullname,
+		LastToken: *token,
 	}
 
 	oauthLogin(r, &oauthUser)

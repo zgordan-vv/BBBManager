@@ -48,7 +48,6 @@ func oauthLogin(r *fasthttp.RequestCtx, oauthUser *OauthUser) {
 		userExists,err := client.Do("SISMEMBER", DBPREFIX+"users", login)
 		if err == nil {
 			if userExists.(int64) == 0 {
-				oauthRegister(r, oauthUser)
 				newSessionValid(r, login)
 			}
 		}
@@ -62,6 +61,8 @@ func oauthLogin(r *fasthttp.RequestCtx, oauthUser *OauthUser) {
 	usersC.Find(bson.M{"name":login}).One(&user)
 	if (user == User{}) || (user.FullName != oauthUser.FullName) {
 		oauthRegister(r, oauthUser)
+	} else {
+		saveUser(user)
 	}
 	newSessionValid(r, oauthUser.Login)
 	r.Redirect("/",302)

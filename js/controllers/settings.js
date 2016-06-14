@@ -9,6 +9,14 @@ function settingsCtrl($http, REST){
 	sc.waiting = false;
 	sc.settingsTab = "conn";
 
+	sc.profilename = {
+		"default": "Default",
+		"wideband": "Wide band",
+		"ultrawideband": "Ultrawide band",
+		"cdquality": "CD quality",
+		"sla": "Shared line appearance",
+	}
+
 	sc.settingsSwitch = function(option){
 		sc.settingsTab = option;
 	}
@@ -47,6 +55,7 @@ function settingsCtrl($http, REST){
 
 	REST.get("/api/getFreeswitch").then(function(fsData){
 		sc.freeswitch = fsData.Params;
+		console.log(sc.freeswitch);
 	})
 
 	sc.updateCheckIP = function() {
@@ -125,6 +134,8 @@ function settingsCtrl($http, REST){
 			}
 		}, function(){notSaved();});
 	};
+
+	sc.audioprofiles = ["default", "wideband", "ultrawideband", "cdquality", "sla"];
 
 	sc.submitfs = function(){
 		var post = $.param({
