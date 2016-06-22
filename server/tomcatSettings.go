@@ -69,16 +69,11 @@ func getTomcatParam(param string) string {
 }
 
 func execPlain (params map[string]string, file string) ([]byte, error) {
-	fmt.Println(params)
 	for name, value := range(params) {
 		str := "s/^"+name+".*/"+name+"="+value+"/"
 		command := exec.Command("sed", "-i", str, file)
 		output, err := command.CombinedOutput()
-			fmt.Println("str is "+str)
-			fmt.Print("output: "); fmt.Println(string(output))
-			fmt.Print("error: "); fmt.Println(err)
 		if (len(output) >0 ) || (err != nil) {
-			fmt.Println("execPlain error")
 			return output, err
 		}
 	}
@@ -100,14 +95,14 @@ func evaluateParam(key string, value string, tmpl map[string]Param) bool {
 		}
 		case "bool": {
 			_, err := strconv.ParseBool(value)
-			if err != nil {fmt.Println("bool case"); return false}
+			if err != nil {return false}
 		}
 		case "url": {
 			if !checkDomainName(value) {
 				if strings.HasPrefix(value, url_prefix) {
 					valueWOPrefix := strings.TrimPrefix(value, url_prefix)
 					if !checkDomainName(valueWOPrefix) {return false}
-				} else if value != "" {fmt.Printf("url case %s\n", value); return false}
+				} else if value != "" {return false}
 			}
 		}
 	}
@@ -115,6 +110,8 @@ func evaluateParam(key string, value string, tmpl map[string]Param) bool {
 }
 
 func setTomcatHandler(r *fasthttp.RequestCtx) {
+
+	if getMaintenance() {out500(r); return}
 	
 	username := getUserName(r)
 	user, ok := getUser(username)
@@ -131,8 +128,9 @@ func setTomcatHandler(r *fasthttp.RequestCtx) {
 		if !evaluateParam(key, value, tomcatTmpl) {out500(r); return}
 	}
 
-	output, err := execPlain(params, tomcatCfgFile)
-	fmt.Println("output "+string(output))
+	setMaintenance(true)
+	_, err := execPlain(params, tomcatCfgFile)
+	setMaintenance(false)
 	if err != nil {
 		fmt.Print("Error is ")
 		fmt.Println(err)

@@ -7,7 +7,7 @@
 <ul>
 	<li>Description: <span class="value" ng-bind=mv.meeting.desc></span></li>
 	<li>Author: <span class="value" ng-bind=mv.meeting.author></span></li>
-	<li>Duration: <span class="value" ng-bind=mv.meeting.duration></span></li>
+	<li>Duration: <span class="value" ng-bind=mv.meeting.duration></span> minutes</li>
 
 	<br>
 	<li>Is recorded: <span class="value" ng-bind="mv.meeting.isrec | yn"></span></li>
@@ -45,7 +45,7 @@
 		<button ng-click="mv.join(mv.meeting.id, mv.meetingpwd)">Join</button>
 	</form>
 	<p ng-if="authorized == 'user' && !mv.isrunning">The meeting isn't started yet</button>
-	<p ng-if="authorized == 'guest'">Please, log in to join</p>
+	<p ng-if="authorized == 'guest'">Please, <a class="value" href="/#/login">log in</a> to join</p>
 </section>
 <a ng-if="mv.link != 'false' && authorized != 'guest'" target="_blank" ng-href={{mv.link}} ng-click='change(mv.meeting.id)'>Use this link to enter the meeting.</a>
 <div class='ng-modal' ng-show='mv.showyn'>

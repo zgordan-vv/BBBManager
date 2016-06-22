@@ -56,6 +56,10 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		case "/api/setTomcat": mw(setTomcatHandler)(ctx)
 		case "/api/getFreeswitch": mw(getFreeswitchHandler)(ctx)
 		case "/api/setFreeswitch": mw(setFreeswitchHandler)(ctx)
+		case "/api/getClient": mw(getClientHandler)(ctx)
+		case "/api/setClient": mw(setClientHandler)(ctx)
+
+		case "/api/getMaintenance": mw(maintenanceHandler)(ctx)
 
 		default: fasthttp.FSHandler(".."+url, strings.Count(url,"/"))(ctx)
 

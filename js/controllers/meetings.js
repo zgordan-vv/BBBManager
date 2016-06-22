@@ -26,20 +26,24 @@ function MeetingsView($rootScope, $http, $location, REST, Meeting, Passwords, Us
 
 					if ($rootScope.authorized == 'admin') {
 
-						REST.apiCall("getMeetingInfo", {meetingID: meetingID, password: mv.passwords.admpwd}, function(response){
-							var meetingJson = BBBglob.x2j(response);
-							var attObj = meetingJson.attendees;
-							if (!attObj || !attObj.attendee) {mv.attendees = [];} else if (attObj.attendee.constructor !== Array) {mv.attendees=new Array(attObj.attendee);} else {mv.attendees = attObj.attendee;};
-						}, function(error){
-							mv.attendees=[];
+						handleAPI(function(){
+							REST.apiCall("getMeetingInfo", {meetingID: meetingID, password: mv.passwords.admpwd}, function(response){
+								var meetingJson = BBBglob.x2j(response);
+								var attObj = meetingJson.attendees;
+								if (!attObj || !attObj.attendee) {mv.attendees = [];} else if (attObj.attendee.constructor !== Array) {mv.attendees=new Array(attObj.attendee);} else {mv.attendees = attObj.attendee;};
+							}, function(error){
+								mv.attendees=[];
+							});
 						});
 
-						REST.apiCall("getRecordings", {meetingID: meetingID}, function(response){
-							var recordingsJson = BBBglob.x2j(response);
-							var recordObj = recordingsJson.recordings;
-							if (!recordObj || !recordObj.recording) {mv.recordings = [];} else if (recordObj.recording.constructor !== Array) {mv.recordings=new Array(recordObj.recording);} else {mv.recordings = recordObj.recording;};
-						}, function(error){
-							mv.recordings=[];
+						handleAPI(function(){
+							REST.apiCall("getRecordings", {meetingID: meetingID}, function(response){
+								var recordingsJson = BBBglob.x2j(response);
+								var recordObj = recordingsJson.recordings;
+								if (!recordObj || !recordObj.recording) {mv.recordings = [];} else if (recordObj.recording.constructor !== Array) {mv.recordings=new Array(recordObj.recording);} else {mv.recordings = recordObj.recording;};
+							}, function(error){
+								mv.recordings=[];
+							});
 						});
 
 					} else {
@@ -58,55 +62,72 @@ function MeetingsView($rootScope, $http, $location, REST, Meeting, Passwords, Us
 		$location.url("/create");
 	}
 
-	mv.createonserver = function(meetingID){
-
-		REST.apiCall("create", {
-			meetingID: meetingID,
-			name: mv.meeting.desc,
-			welcome: mv.meeting.welcome,
-			duration: mv.meeting.duration,
-			moderatorPW: mv.passwords.admpwd,
-			attendeePW: mv.passwords.pwd,
-			record: mv.meeting.isrec || false,
-			autoStartRecording: mv.meeting.autorec || false,
-			allowStartStopRecording: mv.meeting.allowstartstoprec || false,
-			logoutURL: 'http://slava.zgordan.ru',
-		}, function(response){
-			mv.join(meetingID, mv.passwords.admpwd);
+	function handleAPI(callback) {
+		REST.get('/api/getMaintenance').then(function(response){
+			if (response == 'true') {
+				mv.msg = "Server is under maintenance, try in 2 minutes";
+				mv.show = true;
+			} else {
+				callback();
+			}
 		}, function(error){
-			mv.msg = "The meeting is not created.\nServer response: "+error;
-			mv.show=true;
+			mv.msg = "Server error";
+			mv.show = true;
+		});
+	}
+
+	mv.createonserver = function(meetingID){
+		handleAPI(function(){
+			REST.apiCall("create", {
+				meetingID: meetingID,
+				name: mv.meeting.desc,
+				welcome: mv.meeting.welcome,
+				duration: mv.meeting.duration,
+				moderatorPW: mv.passwords.admpwd,
+				attendeePW: mv.passwords.pwd,
+				record: mv.meeting.isrec || false,
+				autoStartRecording: mv.meeting.autorec || false,
+				allowStartStopRecording: mv.meeting.allowstartstoprec || false,
+				logoutURL: 'http://slava.zgordan.ru',
+			}, function(response){
+				mv.join(meetingID, mv.passwords.admpwd);
+			}, function(error){
+				mv.msg = "The meeting is not created.\nServer response: "+error;
+				mv.show=true;
+			});
 		});
 	};
 
 	mv.join = function(meetingID, meetingpwd){
-		Userdata.get({}, function(){}).$promise.then(function(user){
-			if (!user) {return;}
-			var name = user.name;
-			var fullname = user.fullname;
-			REST.get('api/checkPwd?pwd='+meetingpwd+'&id='+meetingID).then(function(response){
-				if (response == 'true'){
-					var command="join";
-					var qstr = BBBglob.getstring({
-						fullName: fullname,
-						meetingID: meetingID,
-						userID: name,
-						password: meetingpwd,
-					});
-					var obj = $.param({
-						string: qstr,
-					});
-
-					REST.post('/api/join',obj).then(function(result){
-						mv.link = BBBglob.BBBURL+result;
-					});
-				} else {
-					mv.msg = "Wrong user password!";
-					mv.show = true;
-				};
-			}, function(){
-					mv.msg = "Server error";
-					mv.show = true;
+		handleAPI(function(){
+			Userdata.get({}, function(){}).$promise.then(function(user){
+				if (!user) {return;}
+				var name = user.name;
+				var fullname = user.fullname;
+				REST.get('api/checkPwd?pwd='+meetingpwd+'&id='+meetingID).then(function(response){
+					if (response == 'true'){
+						var command="join";
+						var qstr = BBBglob.getstring({
+							fullName: fullname,
+							meetingID: meetingID,
+							userID: name,
+							password: meetingpwd,
+						});
+						var obj = $.param({
+							string: qstr,
+						});
+	
+						REST.post('/api/join',obj).then(function(result){
+							mv.link = BBBglob.BBBURL+result;
+						});
+					} else {
+						mv.msg = "Wrong user password!";
+						mv.show = true;
+					};
+				}, function(){
+						mv.msg = "Server error";
+						mv.show = true;
+				});
 			});
 		});
 	};
@@ -118,15 +139,17 @@ function MeetingsView($rootScope, $http, $location, REST, Meeting, Passwords, Us
 
 	mv.end = function(meetingID){
 
-		REST.apiCall("end", {
-			meetingID: meetingID,
-			password: mv.passwords.admpwd,
-		}, function(){
-			mv.showyn = false;
-			mv.change(meetingID);
-		}, function(){
-			mv.showyn = false;
-			mv.change(meetingID);
+		handleAPI(function(){
+			REST.apiCall("end", {
+				meetingID: meetingID,
+				password: mv.passwords.admpwd,
+			}, function(){
+				mv.showyn = false;
+				mv.change(meetingID);
+			}, function(){
+				mv.showyn = false;
+				mv.change(meetingID);
+			});
 		});
 	};
 

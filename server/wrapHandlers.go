@@ -88,9 +88,8 @@ func checkHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 		} else {
 			session := loadUserSession(string(sessionID))
 			username := session.Username
-			fmt.Println(time.Now().Unix())
-			fmt.Println(session.Expires)
 			if (username == "") || (time.Now().Unix()>=session.Expires) {
+				r.SetUserValue("username", "")
 				out403(r)
 			} else {
 				r.SetUserValue("username", username)
@@ -109,8 +108,6 @@ func guestOkHandler(fn fasthttp.RequestHandler) fasthttp.RequestHandler {
 		} else {
 			session := loadUserSession(string(sessionID))
 			username := session.Username
-			fmt.Println(time.Now().Unix())
-			fmt.Println(session.Expires)
 			if (username == "") || (time.Now().Unix()>=session.Expires) {
 				r.SetUserValue("username", "")
 				fn(r)

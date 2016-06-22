@@ -38,6 +38,8 @@ func getSettingsHandler(r *fasthttp.RequestCtx) {
 
 func setSettingsHandler(r *fasthttp.RequestCtx) {
 
+	if getMaintenance() {out500(r); return}
+	
 	username := getUserName(r)
 	user, ok := getUser(username)
 

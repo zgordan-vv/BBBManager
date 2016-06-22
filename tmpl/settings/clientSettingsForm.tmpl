@@ -1,14 +1,31 @@
-<!--                           Tomcat settings                    -->
+<!--                           Client settings                    -->
 
 <form name="client" ng-submit="sc.submitclient()">
-	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
-	<h3>Client settings</h3>
-	Disable recording by default: <input type="checkbox" name="disableRecordingDefault" ng-model="sc.tomcat.disableRecordingDefault" ng-value="sc.tomcat.disableRecordingDefault"><br>
-	Allow start/stop recording: <input type="checkbox" name="allowStartStopRecording" ng-model="sc.tomcat.allowStartStopRecording" ng-value="sc.tomcat.allowStartStopRecording"><br>
-	Maximum number of pages in presentation:<br><input type="number" min="0" step="1" name="maxNumPages" ng-model="sc.tomcat.maxNumPages" ng-value="sc.tomcat.maxNumPages"><br>
-	Default maximum of users per conference:<br><input type="number" min="0" step="1" name="defaultMaxUsers" ng-model="sc.tomcat.defaultMaxUsers" ng-value="sc.tomcat.defaultMaxUsers"><br>
-	Default meeting duration:<br><input type="number" min="0" step="1" name="defaultMeetingDuration" ng-model="sc.tomcat.defaultMeetingDuration" ng-value="sc.tomcat.defaultMeetingDuration"><br>
-	Default meeting expire duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if there are no users logged in)</span><br><input type="number" min="0" step="1" name="defaultMeetingExpireDuration" ng-model="sc.tomcat.defaultMeetingExpireDuration" ng-value="sc.tomcat.defaultMeetingExpireDuration"><br>
-	Default meeting create/join duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if nobody is logging in after creation of the meeting)</span><br><input type="number" min="0" step="1" name="defaultMeetingCreateJoinDuration" ng-model="sc.tomcat.defaultMeetingCreateJoinDuration" ng-value="sc.tomcat.defaultMeetingCreateJoinDuration"><br>
+	<h3>Chat settings</h3>
+	Private chat enabled <input type="checkbox" ng-model="sc.client['ChatModule/privateEnabled']">
+
+	<h3>Users management settings</h3>
+
+	Enable settings button for user <input type="checkbox" ng-model="sc.client['UsersModule/enableSettingsButton']">
+
+	<h3>Deskshare settings</h3>
+	Show deskshare button <input type="checkbox" ng-model="sc.client['DeskShareModule/showButton']">
+	Autostart deskshare <input type="checkbox" ng-model="sc.client['DeskShareModule/autoStart']">
+
+	<h3>Video settings</h3>
+	Autostart of camera sharing <input type="checkbox" ng-model="sc.client['VideoconfModule/autoStart']">
+	Skip camera settins check <input type="checkbox" ng-model="sc.client['VideoconfModule/skipCamSettingsCheck']">
+	Display user avatar <input type="checkbox" ng-model="sc.client['VideoconfModule/displayAvatar']"><br>
+
+	Show camera on/off button <input type="checkbox" ng-model="sc.client['VideoconfModule/showButton']">
+	Show camera close button <input type="checkbox" ng-model="sc.client['VideoconfModule/showCloseButton']">
+	Smooth video <input type="checkbox" ng-model="sc.client['VideoconfModule/smoothVideo']"><br>
+
+
+	Video quality <input type="range" min="0" max="100" ng-model="sc.client['VideoconfModule/videoQuality']">{{sc.client['VideoconfModule/videoQuality']}}<br>
+	Camera quality bandwidth<input type="range" min="0" max="100" ng-model="sc.client['VideoconfModule/camQualityBandwidth']">{{sc.client['VideoconfModule/camQualityBandwidth']}}<br>
+	Camera quality picture<input type="range" min="0" max="100" ng-model="sc.client['VideoconfModule/camQualityPicture']">{{sc.client['VideoconfModule/camQualityPicture']}}
+	<br>
+
 	<button type="submit">Set</button>
 </form>

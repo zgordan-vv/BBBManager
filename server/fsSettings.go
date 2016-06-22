@@ -8,10 +8,6 @@ import (
 )
 
 const fsCfgFile string = "/opt/freeswitch/conf/autoload_configs/conference.conf.xml"
-//const xmlParam = "configuration/profiles/profile[@name='default']/param[@name='energy-level']/@value"
-
-//var 
-
 
 var fsTmpl = map[string]Param{
 	"default": Param{"int", 0, 999},
@@ -30,22 +26,24 @@ func getFreeswitchHandler(r *fasthttp.RequestCtx) {
 	result := jsonArray{}
 	params := map[string]string{}
 	for profile := range(fsTmpl) {
-		params[profile] = getFSParam("configuration/profiles/profile[@name='"+profile+"']/param[@name='energy-level']/@value")
+		params[profile] = getXMLParam(fsCfgFile, "configuration/profiles/profile[@name='"+profile+"']/param[@name='energy-level']/@value")
 	}
 	result.Params = params
 	output, _ := json.Marshal(result)
 	r.Write(output)
 }
 
-func getFSParam(queryString string) string {
-	xmlQuery := exec.Command("bash", "-c", "xmlstarlet sel -t -v \""+queryString+"\" "+fsCfgFile)
-	getFSOutput, err := xmlQuery.CombinedOutput()
+func getXMLParam(file, queryString string) string {
+	xmlQuery := exec.Command("bash", "-c", "xmlstarlet sel -t -v \""+queryString+"\" "+file)
+	output, err := xmlQuery.CombinedOutput()
 	if err != nil {return ""} else {
-		return string(getFSOutput)
+		return string(output)
 	}
 }
 
 func setFreeswitchHandler(r *fasthttp.RequestCtx) {
+	
+	if getMaintenance() {out500(r); return}
 	
 	username := getUserName(r)
 	user, ok := getUser(username)
@@ -59,20 +57,19 @@ func setFreeswitchHandler(r *fasthttp.RequestCtx) {
 
 	params := fsSettings.Params;
 
-	path := "/opt/freeswitch/conf/autoload_configs/"
-	file := "conference.conf.xml"
-
 	for profile := range(fsTmpl) {
 		param := params[profile]
 		if !evaluateParam(profile, param, fsTmpl) {return}
 		energyLevelPath := "/configuration/profiles/profile[@name='"+profile+"']/param[@name='energy-level']/@value"
-		output, err := updateXMLParam(path+file, energyLevelPath, param)
+		output, err := updateXMLParam(fsCfgFile, energyLevelPath, param)
 		fmt.Println("output "+string(output))
 		if err != nil {out500(r); return}
 	}
 
 	restart := exec.Command("service", "bbb-freeswitch", "restart")
+	setMaintenance(true)
 	restartOutput, err := restart.CombinedOutput()
+	setMaintenance(false)
 	fmt.Print("restart output: "); fmt.Println(string(restartOutput))
 	fmt.Print("restart error: "); fmt.Println(err)
 	if err != nil {
@@ -84,7 +81,6 @@ func setFreeswitchHandler(r *fasthttp.RequestCtx) {
 
 func updateXMLParam(file, param, value string) ([]byte, error) {
 	str := "xmlstarlet ed -u \""+param+"\" -v "+value+" "+file+" > /tmp/bbbfstmp.xml && mv -f /tmp/bbbfstmp.xml "+file
-	fmt.Printf("String is %s\n", str)
 	updateParam := exec.Command("bash", "-c", str)
 	output, err := updateParam.CombinedOutput()
 	fmt.Printf("Output is %s, err is %s\n", output, err)

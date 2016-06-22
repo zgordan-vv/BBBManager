@@ -91,7 +91,6 @@ function authCtrl($http, $window, $location, $rootScope, REST) {
 
 	ac.oauthLogin = function(provider) {
 		REST.get("/api/get"+provider+"LoginURL").then(function(response){
-//			console.log(response);
 			$window.location = response;
 		},function(error){
 			alert(error);

@@ -78,6 +78,13 @@ function fsSettingsForm(){
 	};
 };
 
+function clientSettingsForm(){
+	return {
+	restrict: 'E',
+	templateUrl: 'tmpl/settings/clientSettingsForm.tmpl'
+	};
+};
+
 function showtab() {
 	return {
 		link: function (scope, element, attrs) {
@@ -120,6 +127,7 @@ angular.module('dir', [])
 .directive('connSettingsForm', connSettingsForm)
 .directive('tomcatSettingsForm', tomcatSettingsForm)
 .directive('fsSettingsForm', fsSettingsForm)
+.directive('clientSettingsForm', clientSettingsForm)
 .directive('showtab', showtab)
 .directive('welcome', welcome)
 .directive('alert', alert)

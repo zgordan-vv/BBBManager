@@ -84,6 +84,7 @@ func passwordsHandler(r *fasthttp.RequestCtx) {
 }
 
 func createMeetingHandler(r *fasthttp.RequestCtx) {
+
 	username := getUserName(r)
 	user, ok := getUser(username)
 

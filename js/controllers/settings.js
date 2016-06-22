@@ -36,6 +36,12 @@ function settingsCtrl($http, REST){
 		sc.show = true;
 	}
 
+	function wait(){
+		sc.waiting = false;
+		sc.msg = "Please wait about 2 minutes until server restarts"
+		sc.show = true;
+	}
+
 	$http.get('/api/getSecToken').then(function(response){
 		sc.tokensec = response.data;
 	}, function(){ sc.tokensec = ""; });
@@ -44,18 +50,28 @@ function settingsCtrl($http, REST){
 
 	REST.get("/api/getTomcat").then(function(tomcatData){
 		sc.tomcat = tomcatData.Params;
-		sc.tomcat.maxNumPages = Number(sc.tomcat.maxNumPages);
-		sc.tomcat.defaultMaxUsers = Number(sc.tomcat.defaultMaxUsers);
-		sc.tomcat.defaultMeetingCreateJoinDuration = Number(sc.tomcat.defaultMeetingCreateJoinDuration);
-		sc.tomcat.defaultMeetingExpireDuration = Number(sc.tomcat.defaultMeetingExpireDuration);
-		sc.tomcat.defaultMeetingDuration = Number(sc.tomcat.defaultMeetingDuration);
+		sc.tomcat.maxNumPages = +sc.tomcat.maxNumPages;
+		sc.tomcat.defaultMaxUsers = +sc.tomcat.defaultMaxUsers;
+		sc.tomcat.defaultMeetingCreateJoinDuration = +sc.tomcat.defaultMeetingCreateJoinDuration;
+		sc.tomcat.defaultMeetingExpireDuration = +sc.tomcat.defaultMeetingExpireDuration;
+		sc.tomcat.defaultMeetingDuration = +sc.tomcat.defaultMeetingDuration;
 		sc.tomcat.allowStartStopRecording = sc.tomcat.allowStartStopRecording == "true";
 		sc.tomcat.disableRecordingDefault = sc.tomcat.disableRecordingDefault == "true";
 	});
 
 	REST.get("/api/getFreeswitch").then(function(fsData){
 		sc.freeswitch = fsData.Params;
-		console.log(sc.freeswitch);
+	})
+
+	REST.get("/api/getClient").then(function(clientData){
+		sc.client = clientData.Params;
+		for (var param in sc.client) {
+			if (param == 'VideoconfModule/videoQuality' || param == 'VideoconfModule/camQualityBandwidth' || param == 'VideoconfModule/camQualityPicture') {
+				sc.client[param] = +sc.client[param]
+			} else {
+				sc.client[param] = sc.client[param] == 'true';
+			}
+		}
 	})
 
 	sc.updateCheckIP = function() {
@@ -95,26 +111,19 @@ function settingsCtrl($http, REST){
 					return;
 				} else {
 					REST.post("/api/setSettings", post).then(function(response){
-						if (response == "403") {notAuth()} else {saved()}
-					}, notSaved());
+						if (response == "403") {notAuth()} else if (response == "500") {wait()} else {saved()}
+					}, wait());
 				}
 			}, function(){
-				sc.msg = "No response from server";
-				sc.show = true;
-				return;
+				wait();
 			});
+		}, function(){
+			wait();
 		});
 	};
 
 	sc.submittomcat = function() {
 		var params = JSON.parse(JSON.stringify(sc.tomcat));
-/*		params.maxNumPages = params.maxNumPages.toString();
-		params.defaultMaxUsers = params.defaultMaxUsers.toString();
-		params.defaultMeetingCreateJoinDuration = params.defaultMeetingCreateJoinDuration.toString();
-		params.defaultMeetingExpireDuration = params.defaultMeetingExpireDuration.toString();
-		params.defaultMeetingDuration = params.defaultMeetingDuration.toString();
-		params.allowStartStopRecording = params.allowStartStopRecording.toString()
-		params.disableRecordingDefault = params.disableRecordingDefault.toString();*/
 
 		for (var param in params) {
 			params[param] = params[param].toString();
@@ -130,9 +139,9 @@ function settingsCtrl($http, REST){
 		REST.post("/api/setTomcat", post).then(function(response){
 			sc.waiting = false;
 			if (response == "403") {notAuth()} else {
-				if (response == "500") {notSaved()} else {saved()}
+				if (response == "500") {wait()} else {saved()}
 			}
-		}, function(){notSaved();});
+		}, function(){wait()});
 	};
 
 	sc.audioprofiles = ["default", "wideband", "ultrawideband", "cdquality", "sla"];
@@ -148,8 +157,30 @@ function settingsCtrl($http, REST){
 		REST.post("/api/setFreeswitch", post).then(function(response){
 			sc.waiting = false;
 			if (response == "403") {notAuth()} else {
-			if (response == "500") {notSaved()} else {saved()}}
-		}, function(){notSaved();});
+			if (response == "500") {wait()} else {saved()}}
+		}, function(){wait()});
+	};
+
+	sc.submitclient = function(){
+		var params = JSON.parse(JSON.stringify(sc.client));
+		for (var param in params) {
+			params[param] = params[param].toString();
+		}
+
+		var post = $.param({
+			tokensec: sc.tokensec,
+			settings: JSON.stringify({
+				params: params,
+			})
+		});
+		sc.waiting = true;
+		REST.post("/api/setClient", post).then(function(response){
+			sc.waiting = false;
+			if (response == "403") {notAuth()} else {
+			if (response == "500") {wait()} else {saved()}}
+		}, function(){
+			wait();
+		});
 	};
 };
 
