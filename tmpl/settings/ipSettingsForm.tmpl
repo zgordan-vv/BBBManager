@@ -1,0 +1,8 @@
+<!--                           IP settings                    -->
+
+<form name="tomcat" ng-submit="sc.submitIP()">
+	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
+	<h3>Server connection settings</h3>
+	Server IP address:<br><input name="ip" ng-model="sc.ip" ng-value="sc.ip"><br>
+	<button type="submit">Set</button>
+</form>

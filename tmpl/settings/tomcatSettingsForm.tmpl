@@ -4,6 +4,7 @@
 	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
 	<h3>General meeting settings</h3>
 	<fieldset class="col-xs-6">
+	Security salt:<br><input name="securitySalt" ng-model="sc.tomcat.securitySalt" ng-value="sc.tomcat.securitySalt"><br>
 	Disable recording by default: <input type="checkbox" name="disableRecordingDefault" ng-model="sc.tomcat.disableRecordingDefault" ng-value="sc.tomcat.disableRecordingDefault"><br>
 	Allow start/stop recording: <input type="checkbox" name="allowStartStopRecording" ng-model="sc.tomcat.allowStartStopRecording" ng-value="sc.tomcat.allowStartStopRecording"><br>
 	Maximum number of pages in presentation:<br><input type="number" min="0" step="1" name="maxNumPages" ng-model="sc.tomcat.maxNumPages" ng-value="sc.tomcat.maxNumPages"><br>
@@ -14,6 +15,8 @@
 	Default meeting expire duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if there are no users logged in)</span><br><input type="number" min="0" step="1" name="defaultMeetingExpireDuration" ng-model="sc.tomcat.defaultMeetingExpireDuration" ng-value="sc.tomcat.defaultMeetingExpireDuration"><br>
 	Default meeting create/join duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if nobody is logging in after creation of the meeting)</span><br><input type="number" min="0" step="1" name="defaultMeetingCreateJoinDuration" ng-model="sc.tomcat.defaultMeetingCreateJoinDuration" ng-value="sc.tomcat.defaultMeetingCreateJoinDuration"><br>
 	</fieldset>
-	<button type="submit">Set</button>
-	<button type="button" ng-click="sc.resetDefaults('Tomcat')">Reset to defaults</button>
+	<fieldset>
+		<button type="submit">Set</button>
+		<button type="button" ng-click="sc.resetDefaults('Tomcat')">Reset to defaults</button>
+	</fieldset>
 </form>

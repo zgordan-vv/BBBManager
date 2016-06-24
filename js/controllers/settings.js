@@ -7,7 +7,7 @@ function settingsCtrl($http, $location, REST){
 
 	sc.show = false;
 	sc.waiting = false;
-	sc.settingsTab = "conn";
+	sc.settingsTab = "tomcat";
 
 	sc.profilename = {
 		"default": "Default",
@@ -51,8 +51,8 @@ function settingsCtrl($http, $location, REST){
 		sc.tokensec = response.data;
 	}, function(){ sc.tokensec = ""; });
 
-	REST.get("/api/getSettings").then(function(connData){
-		if (connData) { sc.settings = connData; } else { wait() }
+	REST.get("/api/getIP").then(function(ip){
+		if (ip != "") {	sc.ip = ip; }
 	});
 
 	REST.get("/api/getTomcat").then(function(tomcatData){
@@ -85,14 +85,6 @@ function settingsCtrl($http, $location, REST){
 		} else { wait() }
 	})
 
-	sc.updateCheckIP = function() {
-		$http.get('api/regexp?word='+sc.settings.ip+'&type=ip').then(function(response){
-			sc.ipValid = response.data;
-		}, function(){
-			sc.ipValid = "Server error";
-		});
-	};
-
 	sc.updateCheckSecret = function() {
 		$http.get('api/regexp?word='+sc.settings.secret+'&type=num').then(function(response){
 			sc.secretValid = response.data;
@@ -101,42 +93,26 @@ function settingsCtrl($http, $location, REST){
 		});
 	};
 
-	sc.submitsettings = function() {
+	sc.submitIP = function(){
 		REST.get('/api/getMaintenance').then(function(response){
 			if (response != 'false') {
 				wait();
 			} else {
+				var ip = sc.ip;
+		
 				var post = $.param({
 					tokensec: sc.tokensec,
-					settings: JSON.stringify({
-						ip: sc.settings.ip,
-						secret: sc.settings.secret,
+					ip: sc.ip,
 					})
-				});
-				var qstr = 'getMeetings';
+				};
 				sc.waiting = true;
-				REST.get('/api/getsecrsha?string='+qstr+'&secret='+sc.settings.secret).then(function(checksum){
-					qstr='http://'+sc.settings.ip+'/bigbluebutton/api/'+qstr+'?checksum='+checksum;
-					REST.get(qstr).then(function(response){
-						var getMeetings = BBBglob.x2j(response);
-						sc.waiting = false;
-						if (getMeetings.returncode != "SUCCESS") {
-							sc.waiting = false;
-							sc.msg = "Wrong IP or secret";
-							sc.show = true;
-							return;
-						} else {
-							REST.post("/api/setSettings", post).then(function(response){
-								if (response == "403") {notAuth()} else if (response == "500") {wait()} else {saved()}
-							}, notSaved());
-						}
-					}, function(){
-						notSaved();
-					});
-				}, function(){
-					notSaved();
+				REST.post("/api/setIP", post).then(function(response){
+					sc.waiting = false;
+					if (response == "403") {notAuth()} else {
+					if (response == "500") {notSaved()} else {saved()}}
+				}, function(error){
+					wait();
 				});
-			}
 		}, function(error){
 			wait();
 		});

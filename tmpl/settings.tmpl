@@ -6,14 +6,14 @@
 <!-- <h2>Server settings</h2> -->
 
 <section class="col-xs-2 settings-menu">
-<div><h3 ng-click="sc.settingsSwitch('conn')">Connection check</h3></div>
+<div><h3 ng-click="sc.settingsSwitch('ip')">Connection settings</h3></div>
 <div><h3 ng-click="sc.settingsSwitch('tomcat')">General settings</h3></div>
 <div><h3 ng-click="sc.settingsSwitch('fs')">Audio settings</h3></div>
 <div><h3 ng-click="sc.settingsSwitch('client')">Client settings</h3></div>
 </section>
 
 <section class="col-xs-9 settings-form">
-<conn-settings-form ng-if="sc.settingsTab=='conn'"></conn-settings-form>
+<ip-settings-form ng-if="sc.settingsTab=='ip'"></ip-settings-form>
 <tomcat-settings-form ng-if="sc.settingsTab=='tomcat'"></tomcat-settings-form>
 <fs-settings-form ng-if="sc.settingsTab=='fs'"></fs-settings-form>
 <client-settings-form ng-if="sc.settingsTab=='client'"></client-settings-form>

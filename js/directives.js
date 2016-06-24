@@ -50,10 +50,10 @@ function welcome(){
 	};
 };
 
-function connSettingsForm(){
+function ipSettingsForm(){
 	return {
-		restrict: 'E',
-		templateUrl: 'tmpl/settings/connSettingsForm.tmpl',
+	restrict: 'E',
+	templateUrl: 'tmpl/settings/ipSettingsForm.tmpl'
 	};
 };
 
@@ -116,7 +116,7 @@ angular.module('dir', [])
 .directive('mainNav', mainNav)
 .directive('meetingsList', meetingsList)
 .directive('meetingDetails', meetingDetails)
-.directive('connSettingsForm', connSettingsForm)
+.directive('ipSettingsForm', ipSettingsForm)
 .directive('tomcatSettingsForm', tomcatSettingsForm)
 .directive('fsSettingsForm', fsSettingsForm)
 .directive('clientSettingsForm', clientSettingsForm)
