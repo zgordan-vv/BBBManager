@@ -6,7 +6,6 @@ import (
 	"github.com/valyala/fasthttp"
 	"os/exec"
 	"strconv"
-	"strings"
 )
 
 type jsonArray struct {
@@ -34,14 +33,6 @@ func evaluateParam(key string, value string, tmpl map[string]Param) bool {
 			_, err := strconv.ParseBool(value)
 			if err != nil {return false}
 		}
-		case "url": {
-			if !checkDomainName(value) {
-				if strings.HasPrefix(value, url_prefix) {
-					valueWOPrefix := strings.TrimPrefix(value, url_prefix)
-					if !checkDomainName(valueWOPrefix) {return false}
-				} else if value != "" {return false}
-			}
-		}
 	}
 	return true
 }
@@ -63,8 +54,6 @@ func updateXMLParam(file, param, value string) ([]byte, error) {
 }
 
 func resetDefaults(r *fasthttp.RequestCtx, path, filename string) error {
-	
-	if getMaintenance() {out500(r)}
 	
 	username := getUserName(r)
 	user, ok := getUser(username)

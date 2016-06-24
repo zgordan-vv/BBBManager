@@ -12,7 +12,6 @@ const tomcatCfgFile string = "bigbluebutton.properties"
 var tomcatFullPath string = tomcatCfgPath + tomcatCfgFile
 
 const sedstr string = AP+"s/^.[^=]*=\\(.*\\)$/\\1/"+AP
-const url_prefix = "${bigbluebutton.web.serverURL}/"
 
 var tomcatTmpl = map[string]Param{
 	"maxNumPages": Param{"int", 0, 0},
@@ -22,6 +21,7 @@ var tomcatTmpl = map[string]Param{
 	"defaultMeetingCreateJoinDuration": Param{"int", 0, 0},
 	"disableRecordingDefault": Param{"bool", 0, 0},
 	"allowStartStopRecording": Param{"bool", 0, 0},
+	"securitySalt": Param{"string", 0, 0},
 }
 
 func getTomcatHandler(r *fasthttp.RequestCtx) {
@@ -89,10 +89,21 @@ func setTomcatHandler(r *fasthttp.RequestCtx) {
 
 	output, err := execPlain(r, params, tomcatFullPath)
 	fmt.Println(string(output))
-	if err != nil {out500(r)} else { restartTomcat(r) }
+	if err != nil {out500(r)} else {
+		err = setSalt(params["securitySalt"])
+		if err != nil {out500(r)} else {restartTomcat(r); outnil(r)}
+	}
 }
 
 func resetTomcatHandler(r *fasthttp.RequestCtx) {
+
+	if getMaintenance() {out500(r); return}
+	
+	username := getUserName(r)
+	user, ok := getUser(username)
+
+	secToken := r.FormValue("tokensec")
+	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {out403(r); return}
 
 	setMaintenance(true)
 	defer setMaintenance(false)

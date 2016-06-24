@@ -2,28 +2,32 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/valyala/fasthttp"
-	"gopkg.in/mgo.v2/bson"
+	"errors"
+	"regexp"
+	"os/exec"
 )
 
 type Settings struct {
-	ID string	`json:"id"`
 	IP string	`json:"ip"`
 	Secret string	`json:"secret"`
-	Webrtc bool	`json:"webrtc"`
 }
 
-var settings = Settings{ID:"settings"}
+var settings Settings
 
 func initSettings() {
-	s, db := initMongo()
-	defer s.Close()
+	cmd := exec.Command("bbb-conf", "--secret")
+	output, err := cmd.CombinedOutput()
+	if err != nil {fmt.Println(err); return}
 
-	settings0 := Settings{}
+	url_exp := regexp.MustCompile("\\/\\/(.*)\\/bigbluebutton")
+	url := url_exp.FindStringSubmatch(string(output))[1]
 
-	settingsC := db.C("settings")
-	err := settingsC.Find(bson.M{"id":"settings"}).One(&settings0)
-	if err == nil {settings = settings0}
+	salt_exp := regexp.MustCompile("Secret: (.*)")
+	salt := salt_exp.FindStringSubmatch(string(output))[1]
+
+	settings = Settings{url, salt}
 }
 
 func getSettingsHandler(r *fasthttp.RequestCtx) {
@@ -36,34 +40,10 @@ func getSettingsHandler(r *fasthttp.RequestCtx) {
 	if err == nil {r.Write(out)}
 }
 
-func setSettingsHandler(r *fasthttp.RequestCtx) {
+func setSalt(salt string) error {
 
-	if getMaintenance() {out500(r); return}
-	
-	username := getUserName(r)
-	user, ok := getUser(username)
+	if !validate(DIGITS, salt) {return errors.New("Not validated "+ salt +" ...")}
 
-	secToken := r.FormValue("tokensec")
-	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {return}
-
-	jsonObj := r.FormValue("settings")
-	s, db := initMongo()
-	defer s.Close()
-	settingsC := db.C("settings")
-
-	newSettings := struct{
-		ID string	`json:"id"`
-		IP string	`json:"ip"`
-		Secret string	`json:"secret"`
-		Webrtc bool	`json:"webrtc"`
-	}{ID:"settings"}
-
-	if json.Unmarshal(jsonObj, &newSettings) != nil {return}
-
-	if !validate(IP, newSettings.IP) || !validate(DIGITS, newSettings.Secret) {out(r, "Not validated"+newSettings.IP+" "+newSettings.Secret+" ..."); return}
-
-	_, err := settingsC.Upsert(bson.M{"id":"settings"}, newSettings)
-	if err != nil {out500(r);  return}
-	settings = newSettings
-	outnil(r)
+	settings.Secret = salt
+	return nil
 }

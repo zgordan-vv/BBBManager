@@ -51,7 +51,6 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		case "/api/regexp": mwInstall(regexpHandler)(ctx)
 
 		case "/api/getSettings": mw(getSettingsHandler)(ctx)
-		case "/api/setSettings": mw(setSettingsHandler)(ctx)
 		case "/api/getTomcat": mw(getTomcatHandler)(ctx)
 		case "/api/setTomcat": mw(setTomcatHandler)(ctx)
 		case "/api/resetTomcat": mw(resetTomcatHandler)(ctx)

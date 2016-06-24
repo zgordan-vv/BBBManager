@@ -79,21 +79,27 @@ func setClientHandler(r *fasthttp.RequestCtx) {
 
 func resetClientHandler(r *fasthttp.RequestCtx) {
 
+	if getMaintenance() {out500(r); return}
+	
+	username := getUserName(r)
+	user, ok := getUser(username)
+
+	secToken := r.FormValue("tokensec")
+	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {out403(r); return}
+
 	setMaintenance(true)
 	defer setMaintenance(false)
 
 	err := resetDefaults(r, clientCfgPath, clientCfgFile)
-	if err == nil {restartClient(r)} else {out500(r)}
+	if err == nil {restartClient(r); fmt.Println("restarted")} else {out500(r)}
 }
 
 func restartClient(r *fasthttp.RequestCtx){
 
 	restart := exec.Command("bbb-conf", "--clean")
-	setMaintenance(true)
 	err := restart.Start()
 	fmt.Print("error is ")
 	fmt.Print(err)
-	fmt.Println(", here it is")
 
 	if err != nil {
 		fmt.Print("Error is ")
@@ -102,7 +108,7 @@ func restartClient(r *fasthttp.RequestCtx){
 	} else {outnil(r)}
 
 	result := restart.Wait()
-	setMaintenance(false)
 	fmt.Println(result)
 
+	outnil(r)
 }

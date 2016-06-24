@@ -65,6 +65,14 @@ func setFreeswitchHandler(r *fasthttp.RequestCtx) {
 
 func resetFreeswitchHandler(r *fasthttp.RequestCtx) {
 
+	if getMaintenance() {out500(r); return}
+	
+	username := getUserName(r)
+	user, ok := getUser(username)
+
+	secToken := r.FormValue("tokensec")
+	if (!ok) || (!user.IsAdmin) || (!checkSec(secToken,username)) {out403(r); return}
+
 	setMaintenance(true)
 	defer setMaintenance(false)
 
@@ -75,15 +83,16 @@ func resetFreeswitchHandler(r *fasthttp.RequestCtx) {
 func restartFreeswitch(r *fasthttp.RequestCtx) {
 
 	restart := exec.Command("service", "bbb-freeswitch", "restart")
-	setMaintenance(true)
 	restartOutput, err := restart.CombinedOutput()
-	setMaintenance(false)
 	fmt.Print("restart output: "); fmt.Println(string(restartOutput))
 	fmt.Print("restart error: "); fmt.Println(err)
 	if err != nil {
 		fmt.Print("Error is ")
 		fmt.Println(err)
 		out500(r)
-	} else {outnil(r)}
+	} else {
+		fmt.Println("No error")
+		outnil(r)
+	}
 	
 }
