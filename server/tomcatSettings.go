@@ -5,36 +5,23 @@ import (
 	"encoding/json"
 	"os/exec"
 	"github.com/valyala/fasthttp"
-	"strconv"
-	"strings"
 )
 
-type jsonArray struct {
-	Params map[string]string `json: "params"`
-}
+const tomcatCfgPath string = "/var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/"
+const tomcatCfgFile string = "bigbluebutton.properties"
+var tomcatFullPath string = tomcatCfgPath + tomcatCfgFile
 
-type Param struct {
-	tip string
-	min int
-	max int
-}
-
-const tomcatCfgFile string = "/var/lib/tomcat7/webapps/bigbluebutton/WEB-INF/classes/bigbluebutton.properties"
 const sedstr string = AP+"s/^.[^=]*=\\(.*\\)$/\\1/"+AP
 const url_prefix = "${bigbluebutton.web.serverURL}/"
 
 var tomcatTmpl = map[string]Param{
 	"maxNumPages": Param{"int", 0, 0},
-//	"defaultWelcomeMessage": Param{"string", 0, 0},
-//	"defaultWelcomeMessageFooter": Param{"string", 0, 0},
 	"defaultMaxUsers": Param{"int", 0, 0},
 	"defaultMeetingDuration": Param{"int", 0, 0},
 	"defaultMeetingExpireDuration": Param{"int", 0, 0},
 	"defaultMeetingCreateJoinDuration": Param{"int", 0, 0},
 	"disableRecordingDefault": Param{"bool", 0, 0},
 	"allowStartStopRecording": Param{"bool", 0, 0},
-//	"bbb.web.logoutURL": Param{"url", 0, 0},
-//	"defaultAvatarURL": Param{"url", 0, 0},
 }
 
 func getTomcatHandler(r *fasthttp.RequestCtx) {
@@ -55,7 +42,7 @@ func getTomcatHandler(r *fasthttp.RequestCtx) {
 }
 
 func getTomcatParam(param string) string {
-	getTomcat := exec.Command("bash", "-c", "cat "+tomcatCfgFile+" | grep "+param+" | sed "+sedstr)
+	getTomcat := exec.Command("bash", "-c", "cat "+tomcatFullPath+" | grep "+param+" | sed "+sedstr)
 	getTomcatOutput, err := getTomcat.CombinedOutput()
 	if err != nil {return ""} else {
 		var str string
@@ -68,7 +55,8 @@ func getTomcatParam(param string) string {
 	}
 }
 
-func execPlain (params map[string]string, file string) ([]byte, error) {
+func execPlain (r *fasthttp.RequestCtx, params map[string]string, file string) ([]byte, error) {
+
 	for name, value := range(params) {
 		str := "s/^"+name+".*/"+name+"="+value+"/"
 		command := exec.Command("sed", "-i", str, file)
@@ -77,36 +65,7 @@ func execPlain (params map[string]string, file string) ([]byte, error) {
 			return output, err
 		}
 	}
-	restart := exec.Command("service", "tomcat7", "restart")
-	restartOutput, err := restart.CombinedOutput()
-	fmt.Print("restart output: "); fmt.Println(string(restartOutput))
-	fmt.Print("restart error: "); fmt.Println(err)
-	return restartOutput, err
-}
-
-func evaluateParam(key string, value string, tmpl map[string]Param) bool {
-
-	must, ok := tmpl[key]
-	if !ok {fmt.Println("can't get type in a map"); return false}
-	switch must.tip {
-		case "int": {
-			value2int, err := strconv.Atoi(value)
-			if (err != nil) || (value2int < must.min) || ((must.max != 0) && (value2int > must.max)) {fmt.Println("int"); return false}
-		}
-		case "bool": {
-			_, err := strconv.ParseBool(value)
-			if err != nil {return false}
-		}
-		case "url": {
-			if !checkDomainName(value) {
-				if strings.HasPrefix(value, url_prefix) {
-					valueWOPrefix := strings.TrimPrefix(value, url_prefix)
-					if !checkDomainName(valueWOPrefix) {return false}
-				} else if value != "" {return false}
-			}
-		}
-	}
-	return true
+	return nil, nil
 }
 
 func setTomcatHandler(r *fasthttp.RequestCtx) {
@@ -128,30 +87,30 @@ func setTomcatHandler(r *fasthttp.RequestCtx) {
 		if !evaluateParam(key, value, tomcatTmpl) {out500(r); return}
 	}
 
+	output, err := execPlain(r, params, tomcatFullPath)
+	fmt.Println(string(output))
+	if err != nil {out500(r)} else { restartTomcat(r) }
+}
+
+func resetTomcatHandler(r *fasthttp.RequestCtx) {
+
 	setMaintenance(true)
-	_, err := execPlain(params, tomcatCfgFile)
-	setMaintenance(false)
+	defer setMaintenance(false)
+
+	err := resetDefaults(r, tomcatCfgPath, tomcatCfgFile)
+	if err == nil {restartTomcat(r)} else {out500(r)}
+}
+
+func restartTomcat(r *fasthttp.RequestCtx) {
+	
+	restart := exec.Command("service", "tomcat7", "restart")
+	restartOutput, err := restart.CombinedOutput()
+	fmt.Print("restart output: "); fmt.Println(string(restartOutput))
+	fmt.Print("restart error: "); fmt.Println(err)
+
 	if err != nil {
 		fmt.Print("Error is ")
 		fmt.Println(err)
 		out500(r)
 	} else {outnil(r)}
 }
-
-/*func setClientSettings() {
-	path := "/var/www/bigbluebutton/client/conf"
-	file := "config.xml"
-	muteOnStart := "/config/modules/meeting/"
-	modules := "/config/modules/module"
-	chatModule := modules+"[@name=ChatModule]/"
-	usersModule := modules+"[@name=UsersModule]/"
-	DeskShareModule := modules+"[@name=DeskShareModule]/"
-	VideoconfModule := modules+"[@name=VideoconfModule]/"
-	PresentModule := modules+"[@name=PresentModule]/"
-}
-
-func setConnectionSettings() {
-//	bbb-conf --setip ip
-//	bbb-conf --setcesret secret
-}
-*/

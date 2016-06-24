@@ -54,10 +54,13 @@ func requestHandler(ctx *fasthttp.RequestCtx) {
 		case "/api/setSettings": mw(setSettingsHandler)(ctx)
 		case "/api/getTomcat": mw(getTomcatHandler)(ctx)
 		case "/api/setTomcat": mw(setTomcatHandler)(ctx)
+		case "/api/resetTomcat": mw(resetTomcatHandler)(ctx)
 		case "/api/getFreeswitch": mw(getFreeswitchHandler)(ctx)
 		case "/api/setFreeswitch": mw(setFreeswitchHandler)(ctx)
+		case "/api/resetFreeswitch": mw(resetFreeswitchHandler)(ctx)
 		case "/api/getClient": mw(getClientHandler)(ctx)
 		case "/api/setClient": mw(setClientHandler)(ctx)
+		case "/api/resetClient": mw(resetClientHandler)(ctx)
 
 		case "/api/getMaintenance": mw(maintenanceHandler)(ctx)
 

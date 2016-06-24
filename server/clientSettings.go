@@ -8,7 +8,9 @@ import (
 	"strings"
 )
 
-const clientCfgFile string = "/var/www/bigbluebutton/client/conf/config.xml"
+const clientCfgPath string = "/var/www/bigbluebutton/client/conf/"
+const clientCfgFile string = "config.xml"
+var clientFullPath string = clientCfgPath + clientCfgFile
 
 var clientTmpl = map[string]Param{
 	"ChatModule/privateEnabled": Param{"bool", 0, 0},
@@ -38,7 +40,7 @@ func getClientHandler(r *fasthttp.RequestCtx) {
 	for paired := range(clientTmpl) {
 		pair := strings.Split(paired, "/")
 		module, param := pair[0], pair[1]
-		params[paired] = getXMLParam(clientCfgFile, "/config/modules/module[@name='"+module+"']/@"+param)
+		params[paired] = getXMLParam(clientFullPath, "/config/modules/module[@name='"+module+"']/@"+param)
 	}
 	result.Params = params
 	output, _ := json.Marshal(result)
@@ -67,14 +69,24 @@ func setClientHandler(r *fasthttp.RequestCtx) {
 		pair := strings.Split(paired, "/")
 		module, param := pair[0], pair[1]
 		path := "/config/modules/module[@name='"+module+"']/@"+param
-		output, err := updateXMLParam(clientCfgFile, path, value)
+		output, err := updateXMLParam(clientFullPath, path, value)
 		fmt.Println("output "+string(output))
 		if err != nil {out500(r); return}
 	}
 
-/*	restartOutput, err := restart.CombinedOutput()
-	fmt.Print("restart output: "); fmt.Println(string(restartOutput))
-	fmt.Print("restart error: "); fmt.Println(err)*/
+	restartClient(r)
+}
+
+func resetClientHandler(r *fasthttp.RequestCtx) {
+
+	setMaintenance(true)
+	defer setMaintenance(false)
+
+	err := resetDefaults(r, clientCfgPath, clientCfgFile)
+	if err == nil {restartClient(r)} else {out500(r)}
+}
+
+func restartClient(r *fasthttp.RequestCtx){
 
 	restart := exec.Command("bbb-conf", "--clean")
 	setMaintenance(true)
@@ -92,4 +104,5 @@ func setClientHandler(r *fasthttp.RequestCtx) {
 	result := restart.Wait()
 	setMaintenance(false)
 	fmt.Println(result)
+
 }

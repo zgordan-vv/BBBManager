@@ -1,0 +1,13 @@
+<auth ng-if="authorized == 'false'"></auth>
+
+<warn-auth ng-if="authorized == 'user'"></warn-auth>
+
+<section id="reset-defaults" ng-if="authorized == 'admin'" ng-controller='resetDefaults as rd'>
+<h2>Are you sure to reset "<span ng-bind=rd.setting></span>" settings to default?</h2>
+<button type="button" ng-click="rd.yes()">Yes</button>
+<button type="button" ng-click="rd.no()">No</button>
+
+<waiting ng-show=rd.waiting>
+</waiting>
+
+</section>

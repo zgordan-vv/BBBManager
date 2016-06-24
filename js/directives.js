@@ -36,13 +36,6 @@ function auth(){
 	};
 };
 
-function authpage(){
-	return {
-	restrict: 'E',
-	templateUrl: 'tmpl/authpage.tmpl'
-	};
-};
-
 function warnAuth (){
 	return {
 	restrict: 'E',
@@ -118,7 +111,6 @@ function waiting() {
 
 angular.module('dir', [])
 .directive('auth', auth)
-.directive('authpage', authpage)
 .directive('warnAuth', warnAuth)
 .directive('install', install)
 .directive('mainNav', mainNav)
