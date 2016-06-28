@@ -14,6 +14,6 @@
 		<td>{{sc.freeswitch[profile]}}</td>
 	</tr>
 	</table>
-	<button type="submit">Set</button>
-	<button type="button" ng-click="sc.resetDefaults('Freeswitch')">Reset to defaults</button>
+	<button type="submit" ng-disabled="sc.maintenance">Set</button>
+	<button type="button" ng-click="sc.resetDefaults('Freeswitch')" ng-disabled="sc.maintenance">Reset to defaults</button>
 </form>

@@ -17,4 +17,4 @@ BBBglob.getstring = function(obj) {
 	};
 	result = result.substring(1);
 	return result;
-};
+}

@@ -27,6 +27,6 @@
 	Camera quality picture<input type="range" min="0" max="100" ng-model="sc.client['VideoconfModule/camQualityPicture']">{{sc.client['VideoconfModule/camQualityPicture']}}
 	<br>
 
-	<button type="submit">Set</button>
-	<button type="button" ng-click="sc.resetDefaults('Client')">Reset to defaults</button>
+	<button type="submit" ng-disabled="sc.maintenance">Set</button>
+	<button type="button" ng-click="sc.resetDefaults('Client')" ng-disabled="sc.maintenance">Reset to defaults</button>
 </form>

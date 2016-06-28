@@ -4,5 +4,5 @@
 	<input type="hidden" name="tokensec" ng-value="sc.tokensec">
 	<h3>Server connection settings</h3>
 	Server IP address:<br><input name="ip" ng-model="sc.ip" ng-value="sc.ip"><br>
-	<button type="submit">Set</button>
+	<button type="submit" ng-disabled="sc.maintenance">Set</button>
 </form>

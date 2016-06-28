@@ -125,3 +125,8 @@ details ul {
 .freeswitch button {
 	margin-top: 24px;
 }
+
+.warning {
+	font-size: 1.1em;
+	text-transform: uppercase;
+}

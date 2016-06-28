@@ -16,7 +16,7 @@
 	Default meeting create/join duration:<br><span class="hint">(the number of minutes after that the meeting will be automatically removed if nobody is logging in after creation of the meeting)</span><br><input type="number" min="0" step="1" name="defaultMeetingCreateJoinDuration" ng-model="sc.tomcat.defaultMeetingCreateJoinDuration" ng-value="sc.tomcat.defaultMeetingCreateJoinDuration"><br>
 	</fieldset>
 	<fieldset>
-		<button type="submit">Set</button>
-		<button type="button" ng-click="sc.resetDefaults('Tomcat')">Reset to defaults</button>
+		<button type="submit" ng-disabled="sc.maintenance">Set</button>
+		<button type="button" ng-click="sc.resetDefaults('Tomcat')" ng-disabled="sc.maintenance">Reset to defaults</button>
 	</fieldset>
 </form>

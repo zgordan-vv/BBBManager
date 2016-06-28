@@ -5,6 +5,24 @@ function settingsCtrl($http, $location, REST){
 
 	var sc = this;
 
+	REST.get('/api/getMaintenance').then(function(response){
+		if (response == 'true') {
+			sc.maintenance = true;
+			sc.serverWarning = "Server is busy or restarting, wait 2 minutes and reload the page";
+			settings();
+		} else {
+			sc.maintenance = false;
+			sc.serverWarning = "";
+			settings();
+		}
+	}, function(error){
+		sc.maintenance = true;
+		sc.serverWarning = "Server is busy or restarting, wait 2 minutes and reload the page";
+		settings();
+	});
+
+	function settings(){
+
 	sc.show = false;
 	sc.waiting = false;
 	sc.settingsTab = "tomcat";
@@ -202,6 +220,7 @@ function settingsCtrl($http, $location, REST){
 			wait();
 		});
 	};
+	}
 }
 
 function resetDefaults($http, $location, $routeParams, REST){
@@ -255,7 +274,6 @@ function resetDefaults($http, $location, $routeParams, REST){
 	rd.no = function() {
 		$location.url("/settings").replace();
 	}
-	
 }
 
 angular.module("SettingsCs", [])

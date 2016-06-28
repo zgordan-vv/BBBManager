@@ -13,7 +13,7 @@ type State struct {
 
 func initGlobs() {
 	var loadstate State
-	file, err := os.Open("GLOBS")
+	file, err := os.Open("conf/GLOBS")
 	defer file.Close()
 
 	if err != nil {

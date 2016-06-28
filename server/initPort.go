@@ -11,7 +11,7 @@ type PortState struct {
 
 func initPort() {
 	var loadstate PortState
-	file, err := os.Open("PORT")
+	file, err := os.Open("conf/PORT")
 	defer file.Close()
 	if err != nil {
 		return
