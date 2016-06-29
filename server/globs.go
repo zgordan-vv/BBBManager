@@ -24,9 +24,8 @@ func initGlobs() {
 	check(decoder.Decode(&loadstate))
 	DBPREFIX = loadstate.DB
 	DOMAINNAME = loadstate.DN
-	dbpr := DBPREFIX[:len(DBPREFIX)-1]
-	if !checkDBPrefix(dbpr) || !checkDomainName(DOMAINNAME) {return}
-
+	if !checkDBPrefix(DBPREFIX) || !checkDomainName(DOMAINNAME) {return}
+	DBPREFIX += ":"
 	s, db := initMongo()
 	defer s.Close();
 
@@ -36,15 +35,4 @@ func initGlobs() {
 
 	if (err != nil) || (len(usersArr) == 0) {return}
 	installed = true
-}
-
-func saveGlobs(dbprefix, domainname string) {
-	var savestate State
-	savestate.DB = dbprefix
-	savestate.DN = domainname
-	file, err := os.Create("GLOBS")
-	check(err)
-	defer file.Close()
-	encoder := json.NewEncoder(file)
-	check(encoder.Encode(savestate))
 }

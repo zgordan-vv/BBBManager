@@ -9,9 +9,6 @@
 
 	Admin password confirmation:<br><input type="password" name="pwdconf" ng-model="ic.pwdconf" ng-model-options="{ updateOn: 'default blur', debounce: { default: 200, blur: 0 } }"><span class="error" ng-show="ic.pwd != ic.pwdconf"> Passwords must match.</span><br>
 
-	Database prefix:<br><input name="dbprefix" ng-model="ic.dbprefix" ng-keyup="ic.updateCheckDBPrefix()"><span class="error" ng-show="ic.dbPrefixValid != ''"> {{ic.dbPrefixValid}}</span><br>
-
-	Domain name:<br><input name="dname" ng-model="ic.dname" ng-model-options="{ updateOn: 'default blur', debounce: { default: 0, blur: 0 } }" ng-keyup="ic.updateCheckDName()"><span class="error" ng-show="ic.dNameValid != ''">{{ic.dNameValid}}</span><br>
 <br>
 <button type="submit">Install</button>
 </form>

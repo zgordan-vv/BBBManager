@@ -1,5 +1,5 @@
 server {
-        server_name bbbdemo.slava.zgordan.ru;
+        server_name YOUR_SITE_URL;
 
         location / {
                 proxy_set_header X-Real-IP $remote_addr;

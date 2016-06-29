@@ -1,0 +1,12 @@
+Hello!
+
+For proper functioning fix some things:
+
+0. fix your site IP address in js/utils.js
+1. fix your site URL in install/bbbmanager, server/conf/GLOBS and install/KEYS
+2. fill DB prefix (nevermind if database doesn't exist) in server/conf/GLOBS
+3. fill other things in install/KEYS
+4. run the install/KEYS
+5. copy the content of install/KEYS into your root/.bashrc
+6. run install/install.sh
+7. open your site URL in your browser and go on

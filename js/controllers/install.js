@@ -11,8 +11,6 @@ function installCtrl($http, $window, REST) {
 
 	ic.name = "";
 	ic.fullname = "";
-	ic.dbprefix = "";
-	ic.dname = "";
 	
 	ic.updateCheckName = function() {
 		$http.get('api/regexp?word='+ic.name+'&type=name').then(
@@ -41,34 +39,12 @@ function installCtrl($http, $window, REST) {
 		);
 	};
 	
-	ic.updateCheckDBPrefix = function() {
-		$http.get('api/regexp?word='+ic.dbprefix+'&type=charnum').then(
-			function(response){
-				ic.dbPrefixValid = response.data;
-			}, function(){
-				ic.dbPrefixValid = "Server error";
-			}
-		);
-	};
-	
-	ic.updateCheckDName = function() {
-		$http.get('api/regexp?word='+ic.dname+'&type=domain').then(
-			function(response){
-				ic.dNameValid = response.data;
-			}, function(){
-				ic.dNameValid = "Server error";
-			}
-		);
-	};
-
 	ic.submitinstall = function() {
 		var post = $.param({
 			installdata: JSON.stringify({
 				name: ic.name,
 				fullname: ic.fullname,
 				pwd: ic.pwd,
-				dbprefix: ic.dbprefix,
-				domainname: ic.dname,
 			})
 		});
 		REST.post("/api/install", post).then(function(){

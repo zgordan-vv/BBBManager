@@ -2,7 +2,7 @@
 
 var BBBglob = {};
 
-BBBglob.BBBURL = 'http://85.143.223.74/bigbluebutton/api/';
+BBBglob.BBBURL = 'http://YOUR_SITE_IP_ADDRESS/bigbluebutton/api/';
 
 BBBglob.x2j = function(xmlstr) {
 	var x2js = new X2JS();
