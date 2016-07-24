@@ -1,4 +1,5 @@
 {
 	"DN":"bbbdemo.slava.zgordan.ru",
-	"DB":"DB4BBB"
+	"DB":"DB4BBB",
+	"PREFIX": "BBB"
 }
